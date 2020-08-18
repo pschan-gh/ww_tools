@@ -88,6 +88,17 @@ function initializeDB(contents) {
             prob = parseInt(metaData[3]);
             result = metaData[4];
 
+            if (!(hwsets.includes(hwset))) {
+                console.log('NEW HWSET');
+                console.log(hwsets);
+                hwsets.push(hwset);
+                var o = new Option("option text", "value");
+                /// jquerify the DOM object 'o' so we can use the html method
+                $(o).html(hwset);
+                $(o).val(hwset);
+                $("#hwset").append(o);
+            }
+
             if (!answer.match(/submit/ig)) {
                 continue;
             }
@@ -158,16 +169,6 @@ function initializeDB(contents) {
                         console.log(data);
                         row = logTable.createRow(data);
                         rows.push(row);
-                        if (!(hwsets.includes(hwset))) {
-                            console.log('NEW HWSET');
-                            console.log(hwsets);
-                            hwsets.push(hwset);
-                            var o = new Option("option text", "value");
-                            /// jquerify the DOM object 'o' so we can use the html method
-                            $(o).html(hwset);
-                            $(o).val(hwset);
-                            $("#hwset").append(o);
-                        }
                     }
                 }
 
