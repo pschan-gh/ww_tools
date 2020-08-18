@@ -1,3 +1,17 @@
+var hwsets = [];
+var sortField = 'undefined';
+var groupField = 'undefined';
+var headerNames = [];
+var baseQuery;
+var clickedArray = {};
+var highlightHue = 0;
+var maxQuizLength = new Array;
+var latestTime = 0;
+var maxLength = 0;
+
+var lastSelected; // Firefox error: LastSelected is undefined
+var checkBoxes;
+
 function readSingleFile(e) {
     hwsets = [];
     $("#hwset").html('<option value="Select ...">Select ...</option>');
