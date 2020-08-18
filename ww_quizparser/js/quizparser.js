@@ -440,14 +440,11 @@ function queryHWSet(db, table, query, field) {
             });
         });
 
-        // timestamp
         $('#render').click(function() {
             console.log('RENDER');
             var ans;
             $(".chkbox:input:checked").each(function() {
-                //ans = $(this).closest('tr').find('td[field="answer"]');
                 $ans = $(this).closest('tr').find('.answer_cell');
-                // console.log(ans);
                 $ans.each(function() {
                     if (!($(this).hasClass('rendered'))) {
                         var html = '`' + $(this).html() + '`';
