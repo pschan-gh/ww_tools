@@ -1,247 +1,3 @@
-<html>
-<head>
-<meta charset="utf-8" />
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-<script
-  src="https://code.jquery.com/jquery-3.3.1.min.js"
-  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-  crossorigin="anonymous">
-</script>
-
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_HTMLorMML-full"></script>
-
-
-<script src="js/table2CSV.js" type='text/javascript'></script>
-
-<script src="js/lovefield.min.js"></script>
-<script type='text/javascript'>
-var hwsets = [];
-var sortField = 'undefined';
-var groupField = 'undefined';
-var headerNames = [];
-var baseQuery;
-var clickedArray = {};
-var highlightHue = 0;
-
-var lastSelected; // Firefox error: LastSelected is undefined
-var checkBoxes;
-
-MathJax.Hub.Register.StartupHook('AsciiMath Jax Config', function () {
-var AM = MathJax.InputJax.AsciiMath.AM;
-for (var i=0; i< AM.symbols.length; i++) {
-    if (AM.symbols[i].input == '**') {
-    AM.symbols[i] = {input:"**", tag:"msup", output:"^", tex:null, ttype: AM.TOKEN.INFIX};
-    }
-}
-});
-/* Make sure mathjax is confugued for AsciiMath input */
-MathJax.Hub.Config(["input/Tex","input/AsciiMath","input/TeX", "output/HTML-CSS"]);
-</script>
-
-<style>
-
-#check_all {
-    margin-top:5px;
-    float:left;
-}
-
-#render_dropdown {
-float:right;
-}
-
-.triangle {
-    color:#aaa;
-    /* display:none; */
-    float:right;
-}
-strong {
-    color: SteelBlue;
-    /* color:#aaa; */
-}
-thead, tbody tr {
-    display:table;
-    width:100%;
-    table-layout:fixed;/* even columns width , fix width of table too*/
-}
-
-thead {
-    color:#888;
-    width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */
-}
-
-.table {
-    margin:auto;
-    position:absolute;
-    top:5px;
-    left:0;
-    right:0;
-    width:100%;
-    height:85%;
-}
-.table td {
-    color: #bbb;
-}
-
-.col_chkbox {
-    width:5em;
-}
-
-.col_count {
-    font-size:small;
-    width:5em;
-}
-
-.col_score {
-    /* font-size:small; */
-    width:6em;
-}
-
-.col_result, .col_sid{
-    width:10em;
-}
-
-.col_time {
-    width:17em;
-}
-
-.col_prob {
-    width:5em;
-}
-
-.answer_cell {
-    display:inline-block;
-    margin:1px;
-    padding: 1px;
-    border: 1px solid #bbb;
-    float:left;
-    clear:left;
-}
-
-.col_answer {
-    overflow-x : auto !important;
-}
-
-a {
-    color:#888;
-}
-</style>
-</head>
-
-<body>
-    <div style="width:100%;padding-top:1em">
-        <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
-            <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
-        </div>
-        <nav class="navbar navbar-expand-md navbar-light bg-light">
-            <div class="navbar-collapse collapse">
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Open answer_log
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="width:20em;">
-                            <input class="form-control-file" type="file" id="file-input"/>
-                        </div>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <select class="form-control-sm" id="hwset" name="hwset">
-                                <option value="">Select Assignment Set</option>
-                            </select>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <select class="form-control-sm" id="problem_sel" name="problem_sel">
-                                <option value="Select">Select Problem Set</option>
-                            </select>
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Show / Hide
-                        </a>
-                        <div class="dropdown-menu" id="columns_menu" aria-labelledby="navbarDropdown" onclick=" event.stopPropagation();">
-                        </div>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Query
-                        </a>
-                        <!-- <label for="query">Query: </label> -->
-                        <div style="position:absolute;top:4em;width:100%;text-align:center" div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <input style="font-family:Courier;width:80%;margin:auto" type="text" id="query" name="query">
-                            <input id="submit" type="submit" value="Submit">
-                        </div>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <button id="export" class="btn btn-sm btn-outline-info" style="float:left;margin-right:1em;display:none">Export to CSV</button>
-                        <h5 style="float:left" id="messages"><strong>WeBWorK <span style="font-family:Courier">answer_log</span> Parser</strong></h5>
-                        <span id="details"></span>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-        <div style="position:relative;height:95%;width:80%;margin:auto">
-
-            <!-- <pre id="file-content"></pre> -->
-            <!-- <div id='controlPanel' style="display:none">
-            </div> -->
-            <div style="margin-top:5px;display:none" id="instructions">
-                Click on table headers to group and sort.
-            </div>
-            <table id="mainTable" class='table table-bordered table-hover'>
-                <thead>
-                    <tr id="header_row">
-                        <th id="th_chkbox" field="chkbox" class="col_chkbox">
-                            <input id="check_all" type="checkbox" />
-                            <div id='render_dropdown' class="dropdown show" style="display:inline-block">
-                                <a href="#" role="button" id="renderMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    &#x2699;
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="renderMenuLink">
-                                    <a id="render" href="#" class="dropdown-item">Render</a>
-                                    <a id="unrender" href="#" class="dropdown-item">Unrender</a>
-                                </div>
-                            </div>
-                            <!-- <a id="render" style="float:right" href="#"></a> -->
-                        </th>
-                        <th id="th_count" clicked="0" field="count" class="col_count" >
-                        <div id='count_dropdown' class="dropdown show" style="display:inline-block">
-                            <a href="#" role="button" id="countMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                #
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="countMenuLink">
-                                <a id="expand" href="#" class="dropdown-item">Expand All</a>
-                                <a id="collapse" href="#" class="dropdown-item">Collapse All</a>
-                            </div>
-                        </div>
-                        <div class="triangle">&#x25b7;</div>
-                        </th>
-                        <th id="th_time" clicked="0" field="time" class="col_time"><a href="#">Time</a><div class='triangle'></div></th>
-                        <th id="th_sid" clicked="0" field="sid" class="col_sid"><a href="#">SID</a><div class='triangle'></div>
-                        </th>
-                        <!-- <th id="th_prob" clicked="0">Problem</th> -->
-                        <th id="th_result" clicked="0" field="result" class="col_result"><a href="#">Result</a><div class='triangle'></div></th>
-                        <th id="th_answer" clicked="0" field="answer" class="col_answer"><a href="#">Answer</a><div class='triangle'></div></th>
-                    </tr>
-                </thead>
-                <tbody style="display:block;height:100%;overflow:auto;">
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
-
-<script type='text/javascript'>
-
 function readSingleFile(e) {
     hwsets = [];
     $("#hwset").html('<option value="Select ...">Select ...</option>');
@@ -252,10 +8,7 @@ function readSingleFile(e) {
     $('#hwset').off();
     $('#problem').off();
     $('#problem_set').off();
-    // $('#columns_menu').html('<a href="#" class="dropdown-item"><input class="field_checkbox" checked type="checkbox" field="chkbox" id="chkbox_checkbox">&nbsp;<label class="form-check-label" for="chkbox_checkbox">Checkbox</label>');
-
     $('#controlPanel').hide();
-    $('td').css('color', '#eee');
     $('#hover_msg').html('Loading Database...<img style="width:5em" src="Loading_icon.gif"/>');
     $('#hover_msg').show();
 
@@ -266,8 +19,7 @@ function readSingleFile(e) {
     var reader = new FileReader();
     reader.onload = function(e) {
         var contents = e.target.result;
-      // displayContents(contents);
-      initializeDB(contents);
+        initializeDB(contents);
   }
   reader.readAsText(file);
 }
@@ -285,7 +37,6 @@ String.prototype.hashCode = function() {
 };
 
 function initializeDB(contents) {
-    // $('th').find('.triangle').hide();
     $('th').css('background-color', '');
     $('th').css('color', '');
     $('th').find('a').css('color', '');
@@ -296,98 +47,134 @@ function initializeDB(contents) {
     $('tbody').html('');
 
     var dqRegex = /\"/ig;
+    var entryRegexp = /^(.*?)\t(\d+)\t(.*?)$/;
 
-    var contents = contents.replace(/,/g, '_');
+    var dbName = 'csvDB' + JSON.stringify(contents).hashCode();
 
-    // var dbName = 'alDB' + new Date().getTime();
-    var dbName = 'alDB' + contents.hashCode();
     console.log('DB NAME: ' + dbName);
+    indexedDB.deleteDatabase(dbName);
+    console.log(dbName + ' DELETED');
 
-    // var schemaBuilder = lf.schema.create(dbName, 1);
-    // schemaBuilder.createTable('LogTable').addColumn('sid', lf.Type.STRING).addColumn('answer', lf.Type.STRING).addColumn('unixtime', lf.Type.INTEGER).addColumn('time', lf.Type.STRING).addColumn('hwset', lf.Type.STRING).addColumn('prob', lf.Type.INTEGER).addColumn('result', lf.Type.STRING).
-    // addPrimaryKey(['unixtime']).
-    // addIndex('idxSID', ['sid'], false, lf.Order.DESC);
     var schemaBuilder = lf.schema.create(dbName, 1);
-    schemaBuilder.createTable('LogTable').addColumn('sid', lf.Type.STRING).addColumn('answer', lf.Type.STRING).addColumn('index', lf.Type.INTEGER).addColumn('unixtime', lf.Type.INTEGER).addColumn('time', lf.Type.STRING).addColumn('hwset', lf.Type.STRING).addColumn('prob', lf.Type.INTEGER).addColumn('result', lf.Type.STRING).
-    addPrimaryKey(['index']).
-    addIndex('idxSID', ['sid'], false, lf.Order.DESC);
+
+    var logList = contents.split(/\r?\n/);
+    var answer, utime, metaData, time, sid, hwset, result;
+    var prob = 0;
+    var finalAnswers = {};
+
+    for (let i = 0; i < logList.length - 1; i++) {
+        var match = entryRegexp.exec(logList[i]);
+        if (typeof(match) !== 'undefined' && match !== null)  {
+            answer = match[3].replace(dqRegex, "'").replace(/\t/g, ' ; ');
+            utime = match[2];
+            metaData = match[1].split(/\|/);
+            time = metaData[0];
+            sid = metaData[1];
+            hwset = metaData[2];
+            prob = parseInt(metaData[3]);
+            result = metaData[4];
+
+            if (!answer.match(/submit/ig)) {
+                continue;
+            }
+
+            if (typeof finalAnswers[sid] === 'undefined') {
+                finalAnswers[sid] = new Array();
+            }
+
+            if (typeof finalAnswers[sid][hwset] === 'undefined') {
+                finalAnswers[sid][hwset] = new Array();
+            }
+
+            // console.log(sid + ': ' + answer);
+            let processed_ans = answer.replace(/\[submit\] */ig, '');
+            if (!processed_ans.match(/no answer entered/ig)) {
+                processed_ans = result;
+            }
+            finalAnswers[sid][hwset][prob] = {
+                'prob': prob,
+                'answer': processed_ans,
+                'result': result,
+                'unixtime': utime,
+                'hwset': hwset,
+                'time': time,
+                'sid': sid
+            }
+
+            if (typeof maxQuizLength[hwset] === 'undefined') {
+                maxQuizLength[hwset] = prob;
+            } else {
+                maxQuizLength[hwset] = Math.max(maxQuizLength[hwset] ,prob);
+            }
+            maxLength = Math.max(maxQuizLength[hwset], maxLength);
+        }
+    }
+
+
+    var tableBuilder = schemaBuilder.createTable('LogTable');
+
+    tableBuilder = tableBuilder.addColumn('sid', lf.Type.STRING).addColumn('hwset', lf.Type.STRING).addPrimaryKey(['sid']);
+
+    for (var j = 1; j <= maxLength; j++) {
+        tableBuilder = tableBuilder.addColumn('prob' + j.toString(), lf.Type.STRING);
+    }
 
     schemaBuilder.connect().then(function(db) {
         console.log('CONNECTED');
         var row;
         var rows = [];
         var logTable = db.getSchema().table('LogTable');
-        var entryRegexp = /^(.*?)\t(\d+)\t(.*?)$/;
-        var logList = contents.split(/\r?\n/);
-        var answer, utime, metaData, time, sid, hwset, result;
-        var prob = 0;
-        for (var i = 0; i < logList.length - 1; i++) {
-            var match = entryRegexp.exec(logList[i]);
-            if (typeof(match) !== 'undefined' && match !== null)  {
-                // var utime = match[2];
-                // console.log('MATCH');
-                // console.log(match);
-                answer = match[3].replace(dqRegex, "'").replace(/\t/g, ' ; ');
-                utime = match[2];
-                metaData = match[1].split(/\|/);
-                time = metaData[0];
-                // time = utime;
-                sid = metaData[1];
-                hwset = metaData[2];
-                prob = parseInt(metaData[3]);
-                result = metaData[4];
-                if (typeof(result) == 'undefined' || result == null) {
-                    result = '1';
+
+        let data = {};
+        for(let sid in finalAnswers) {
+            if(finalAnswers.hasOwnProperty(sid)) {
+                console.log(sid);
+                for(let hwset in finalAnswers[sid]) {
+                    if(finalAnswers[sid].hasOwnProperty(hwset)) {
+                        data = {};
+                        data['sid'] = sid;
+                        data['hwset'] = hwset;
+                        for (let prob = 1; prob <= maxLength; prob++) {
+                            if (finalAnswers[sid][hwset][prob] != null) {
+                                data['prob' + prob] = finalAnswers[sid][hwset][prob]['answer'];
+                            } else {
+                                data['prob' + prob] = '';
+                            }
+                        }
+                        console.log(data);
+                        row = logTable.createRow(data);
+                        rows.push(row);
+                        if (!(hwsets.includes(hwset))) {
+                            console.log('NEW HWSET');
+                            console.log(hwsets);
+                            hwsets.push(hwset);
+                            var o = new Option("option text", "value");
+                            /// jquerify the DOM object 'o' so we can use the html method
+                            $(o).html(hwset);
+                            $(o).val(hwset);
+                            $("#hwset").append(o);
+                        }
+                    }
                 }
 
-                row = logTable.createRow({
-                    'index': i,
-                    'unixtime': utime,
-                    'sid': sid,
-                    'answer': answer,
-                    'time': time,
-                    'hwset': hwset,
-                    'prob': prob,
-                    'result': result
-                });
-                console.log(row);
-                rows.push(row);
 
-                if (!(hwsets.includes(hwset))) {
-                    console.log('NEW HWSET');
-                    console.log(hwsets);
-                    hwsets.push(hwset);
-                    var o = new Option("option text", "value");
-                    /// jquerify the DOM object 'o' so we can use the html method
-                    $(o).html(hwset);
-                    $(o).val(hwset);
-                    $("#hwset").append(o);
-                }
+
             }
+            console.log(data);
         }
 
+        console.log(rows);
+        // debugger;
         console.log('INSERT');
         db.insertOrReplace().into(logTable).values(rows).exec().then(function() {
-            // $('#msg_details').html('');
-            // updatePanel(db);
             $('#messages').html('<strong>Database Loaded.</strong>');
             $('#hover_msg').hide();
 
             $('#hwset').on('change', function() {
-                //queryHWSet(db, logTable, this.value, null, $("th[field='time']")[0]);
-                baseQuery = "select(table.time, table.sid, table.result, table.answer).from(table).where(table.hwset.eq('" + $(this).val() +"'))";
+                baseQuery = "select(table.sid).from(table).where(table.hwset.eq('" + $(this).val() +"'))";
                 $('#query').val(baseQuery);
-                updateProblems(db, logTable, $('#hwset').val());
-            });
-
-            $('#problem_sel').on('change', function() {
-                var problem = $(this).val();
-                baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"'), table.prob.eq('" + problem + "')))";
-                $('#query').val(baseQuery);
-                clickedArray['time'] = -1;
-                queryHWSet(db, logTable, baseQuery, 'time');
-                $('#export').show();
-
+                // updateProblems(db, logTable, $('#hwset').val());
+                loadProblems(db, logTable, $('#hwset').val());
             });
 
             $('#submit').on('click', function() {
@@ -396,8 +183,6 @@ function initializeDB(contents) {
             });
 
             $('#controlPanel').css('display', 'inline-block');
-            updateProblems(db, logTable, $('#hwset').val());
-
         });
     });
 }
@@ -410,7 +195,6 @@ function queryHWSet(db, table, query, field) {
     $('th').find('div').css('color', '');
     $('td').css('border-left', '');
     $('td').css('border-right', '');
-    $('td').css('color', '#eee');
 
     $('#check_all').prop('checked', false);
     $('.chkbox').prop('checked', false);
@@ -421,9 +205,6 @@ function queryHWSet(db, table, query, field) {
 
     var logTable = table;
     var prev_row = null;
-    var prev_tableRow = null;
-    var white = 'rgb(255, 255, 255)';
-    var grey = 'rgb(245, 245, 245)';
     var bgcolor;
     var order = lf.Order.DESC;
     headerNames = [];
@@ -434,9 +215,9 @@ function queryHWSet(db, table, query, field) {
     console.log('FIELD: ' + field);
 
     console.log('QUERY: ' + query);
-    var queryFunc = new Function('db', 'table',  'return db.' + query + '.orderBy(table.unixtime, lf.Order.DESC).exec()');
+    // var queryFunc = new Function('db', 'table',  'return db.' + query + '.orderBy(table.sid, lf.Order.DESC).exec()');
+    var queryFunc = new Function('db', 'table',  'return db.' + query + '.exec()');
 
-    // return db.select(logTable.unixtime, logTable.time, logTable.sid, logTable.prob, logTable.result, logTable.answer).from(logTable).where(lf.op.and(logTable.hwset.eq(hwset), logTable.prob.eq(problem))).orderBy(sort, order).orderBy(logTable.unixtime, lf.Order.DESC).exec().then(function(rows) {
     return queryFunc(db, logTable).then(function(rows) {
         document.getElementById('mainTable').getElementsByTagName('tbody')[0].innerHTML = '';
         rows.forEach(function(row) {
@@ -444,9 +225,8 @@ function queryHWSet(db, table, query, field) {
             if (count < 1) {
                 headerNames = [];
                 $('th[field!="chkbox"][field!="count"]').remove();
-                // $('#header_row').html('<th id="th_chkbox" field="chkbox" class="col_chkbox"></th><th id="th_count" clicked="0" field="count" class="col_count" ><a href="#">#</a><div class="triangle">&#x25b7;</div></th>');
                 for(var key in row) {
-                    var hfield = key.replace(/\s/g, "_").replace(/[^a-z]/ig, "");
+                    var hfield = key.replace(/\s/g, "_").replace(/[^a-z0-9]/ig, "");
                     var $th = $("<th>", {"id" : 'th_' + hfield, 'clicked': '0', 'field': hfield, "class":'col_' + hfield});
                     $th.html("<a href='#'>" + hfield + "</a><div class='triangle'>&#x25b7;</div>");
                     $th.appendTo($('#header_row'));
@@ -477,26 +257,17 @@ function queryHWSet(db, table, query, field) {
             var tableRow = document.getElementById('mainTable').getElementsByTagName('tbody')[0].insertRow(-1);
             var cell;
 
-            cell = tableRow.insertCell(0);
-            $(cell).addClass('col_chkbox');
-            $(cell).attr('field', 'chkbox');
-            $(cell).html('<input type="checkbox" class="chkbox">');
-
-            cell = tableRow.insertCell(1);
-            $(cell).addClass('col_count');
-            $(cell).attr('field', 'count');
-
             if ((prev_row == null) || (prev_row[field] != row[field])) {
                 // $(".col_count[index='" + index + "']:not(:first)").html(count + '&#x21b3;');
                 $(".col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
                 $("td.root[index='" + index + "']").html(count);
                 index++;
                 count = 1;
-                $(cell).addClass('root');
+                // $(cell).addClass('root');
                 $(tableRow).addClass('root');
             } else {
                 count++;
-                $(cell).addClass('branch');
+                // $(cell).addClass('branch');
                 $(tableRow).addClass('branch');
                 $(tableRow).hide();
             }
@@ -505,12 +276,7 @@ function queryHWSet(db, table, query, field) {
             $("td.root[index='" + index + "']").html(count);
 
             $(tableRow).attr('index', index);
-            $(tableRow).attr('unixtime', row['unixtime']);
-
-            $(cell).attr('index', index);
-            $(cell).attr('clicked', 0);
-            cell.textContent = count ;
-            // tableRow.insertCell(0).textContent = row['unixtime'];
+            $(tableRow).attr('sid', row['sid']);
 
             var cell;
 
@@ -529,7 +295,7 @@ function queryHWSet(db, table, query, field) {
                     for (var k = 0; k < answers.length; k++) {
                         color = results[k] == 0 ? '#f00' : '#bbb';
                         var $answerCell = $("<div>", {'index': k, "class":'answer_cell', 'text': answers[k]});
-                        $answerCell.css('border-color', color);
+                        $answerCell.css('border-color', 'black');
                         $answerCell.appendTo($tdDiv);
                     }
                     $tdDiv.appendTo($td);
@@ -538,7 +304,6 @@ function queryHWSet(db, table, query, field) {
             });
 
             prev_row = row;
-            prev_tableRow = tableRow;
         });
         $('#messages').html('<strong>Query Completed</strong>');
         $('#hover_msg').hide();
@@ -577,7 +342,6 @@ function queryHWSet(db, table, query, field) {
         });
 
         if (field != 'unixtime') {
-            $('td').css('color', '#ccc');
             $('td.' + colClass).css('color', '#000');
             $('td.col_count').css('color', '#000');
         } else {
@@ -585,7 +349,6 @@ function queryHWSet(db, table, query, field) {
         }
 
         $('td.col_count').on('click', function() {
-            // var bgcolor = $("tr[index='" + $(this).attr('index') + "']").first().css('background-color');
             var index = $(this).closest('tr').attr('index');
             var clicked = 1 - parseInt($(this).closest('tr').find('td.col_count').attr('clicked'));
             $(".col_count[index='" + index + "']").attr('clicked', clicked);
@@ -615,8 +378,7 @@ function queryHWSet(db, table, query, field) {
         });
 
         $("td[field='sid']").on('click', function() {
-            // baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.prob.eq('" + $('#problem_sel').val() + "'), table.sid.eq('" + $(this).text() + "')))";
-            baseQuery = "select(table.time, table.unixtime, table.sid, table.prob, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
+            baseQuery = "select(table.sid, table.prob).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
             $('#problem_sel').val('Select ...');
             $('#query').val(baseQuery);
             queryHWSet(db, logTable, baseQuery + '.orderBy(table.prob, lf.Order.ASC)', 'prob');
@@ -679,17 +441,6 @@ function queryHWSet(db, table, query, field) {
                         $(this).addClass('rendered');
                     }
                 });
-                // if (!(ans.hasClass('rendered'))) {
-                //     var html = '<div style="width:100%;overflow-x:auto">`' + ans.html().replace(/\t/g, '  ; ') + '`</div>';
-                //     ans.html(html);
-                //     MathJax.Hub.Queue([ "Typeset", MathJax.Hub, ans[0]]);
-                //     ans.addClass('rendered');
-                // }
-                // } else {
-                //     html = ans.find('script[type="math/asciimath"]').html();
-                //     ans.html(html);
-                //     ans.removeClass('rendered');
-                // }
             });
         });
 
@@ -708,7 +459,6 @@ function queryHWSet(db, table, query, field) {
         });
 
         $('#mainTable').show();
-        // $('#instructions').show();
     });
 }
 
@@ -748,8 +498,6 @@ function updateButtons(db, logTable) {
 
     clickedArray['count'] = 0;
     fieldToLf['time'] = 'table.unixtime';
-
-    // $('th[field="count"]').html('');
 
     $("th a").off();
     $("th[field!='count'][field!='chkbox'][field!='score'] a").on('click', function() {
@@ -842,10 +590,9 @@ function updateButtons(db, logTable) {
 }
 
 function updateProblems(db, table, hwset, sortField) {
-    console.log(hwset);
     $("#problem_sel").html('<option value="Select ...">Select ... </option>');
     var logTable = table;
-    var options = [];
+    var options = []
     return db.select(lf.fn.distinct(logTable.prob)).from(logTable).where(logTable.hwset.eq(hwset)).exec().then(function(results){
         results.forEach(function(result) {
             options.push(result['DISTINCT(prob)']);
@@ -861,6 +608,20 @@ function updateProblems(db, table, hwset, sortField) {
         $("#problem_sel").val('Select ...');
     });
 
+}
+
+function loadProblems(db, table, hwset, sortField) {
+    let baseQuery= 'select(table.sid';
+    for (let prob = 1; prob <= maxQuizLength[hwset]; prob++) {
+        baseQuery += ', table.prob' + prob;
+    }
+    baseQuery += ')';
+
+    baseQuery += ".from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"')))";
+    $('#query').val(baseQuery);
+    // clickedArray['time'] = -1;
+    queryHWSet(db, table, baseQuery, 'sid');
+    $('#export').show();
 }
 
 document.getElementById('file-input').addEventListener('change', readSingleFile, false);
@@ -894,6 +655,3 @@ $(document).ready(function () {
        });
    });
 })
-</script>
-
-</html>
