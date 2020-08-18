@@ -638,9 +638,10 @@ function loadProblems(db, table, hwset, sortField) {
     $('#export').show();
 }
 
-document.getElementById('file-input').addEventListener('change', readSingleFile, false);
+
 
 $(document).ready(function () {
+    document.getElementById('file-input').addEventListener('change', readSingleFile, false);
    $('table').each(function () {
        var $table = $(this);
        var triangles = {};
