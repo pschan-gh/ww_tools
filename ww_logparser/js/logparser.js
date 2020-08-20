@@ -107,7 +107,7 @@ function initializeDB(contents) {
 					'prob': prob,
 					'result': result
 				});
-				console.log(row);
+				// console.log(row);
 				rows.push(row);
 
 				if (!(hwsets.includes(hwset))) {
@@ -157,17 +157,17 @@ function initializeDB(contents) {
 	});
 }
 
-function queryHWSet(db, table, query, field) {
+function queryHWSet(db, table, query, field, target = 'mainTable') {
 
-	$('th').css('background-color', '');
-	$('th').css('color', '');
-	$('th').find('a').css('color', '');
-	$('th').find('div').css('color', '');
-	$('td').css('border-left', '');
-	$('td').css('border-right', '');
-	$('td').css('color', '#eee');
+	$('#' + target + ' th').css('background-color', '');
+	$('#' + target + ' th').css('color', '');
+	$('#' + target + ' th').find('a').css('color', '');
+	$('#' + target + ' th').find('div').css('color', '');
+	$('#' + target + ' td').css('border-left', '');
+	$('#' + target + ' td').css('border-right', '');
+	$('#' + target + ' td').css('color', '#eee');
 
-	$('#check_all').prop('checked', false);
+	$('.check_all').prop('checked', false);
 	$('.chkbox').prop('checked', false);
 
 
@@ -189,27 +189,27 @@ function queryHWSet(db, table, query, field) {
 	var queryFunc = new Function('db', 'table',  'return db.' + query + '.orderBy(table.unixtime, lf.Order.DESC).exec()');
 
 	return queryFunc(db, logTable).then(function(rows) {
-		document.getElementById('mainTable').getElementsByTagName('tbody')[0].innerHTML = '';
+		document.getElementById(target).getElementsByTagName('tbody')[0].innerHTML = '';
 		rows.forEach(function(row) {
 
 			if (count < 1) {
 				headerNames = [];
-				$('th[field!="chkbox"][field!="count"]').remove();
+				$('#' + target + ' th[field!="chkbox"][field!="count"]').remove();
 				for(var key in row) {
 					var hfield = key.replace(/\s/g, "_").replace(/[^a-z]/ig, "");
 					var $th = $("<th>", {"id" : 'th_' + hfield, 'clicked': '0', 'field': hfield, "class":'col_' + hfield});
 					$th.html("<a href='#'>" + hfield + "</a><div class='triangle'>&#x25b7;</div>");
-					$th.appendTo($('#header_row'));
+					$th.appendTo($('#' + target + ' .header_row')[0]);
 					headerNames.push(hfield);
 					if (hfield == 'result') {
 						var score_field = 'score';
 						var $th = $("<th>", {"id" : 'th' + score_field, 'clicked': '0', 'field': score_field, "class":'col_' + score_field});
 						$th.html("<a href='#'>" + score_field + "</a><div class='triangle'>&#x25b7;</div>");
-						$th.appendTo($('#header_row'));
+						$th.appendTo($('#' + target + ' .header_row')[0]);
 						headerNames.push(score_field);
 					}
 				}
-				$("th[field='" + field + "']").each(function() {
+				$('#' + target + " th[field='" + field + "']").each(function() {
 					$(this).css('background-color', 'SteelBlue');
 					$(this).find('a').css('color', 'white');
 					$(this).find('div').css('color', 'white');
@@ -224,7 +224,7 @@ function queryHWSet(db, table, query, field) {
 				updateButtons(db, logTable);
 			}
 
-			var tableRow = document.getElementById('mainTable').getElementsByTagName('tbody')[0].insertRow(-1);
+			var tableRow = document.getElementById(target).getElementsByTagName('tbody')[0].insertRow(-1);
 			var cell;
 
 			cell = tableRow.insertCell(0);
@@ -238,8 +238,8 @@ function queryHWSet(db, table, query, field) {
 
 			if ((prev_row == null) || (prev_row[field] != row[field])) {
 				// $(".col_count[index='" + index + "']:not(:first)").html(count + '&#x21b3;');
-				$(".col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
-				$("td.root[index='" + index + "']").html(count);
+				$('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
+				$('#' + target + " td.root[index='" + index + "']").html(count);
 				index++;
 				count = 1;
 				$(cell).addClass('root');
@@ -251,8 +251,8 @@ function queryHWSet(db, table, query, field) {
 				$(tableRow).hide();
 			}
 			$(tableRow).attr('clicked', 0);
-			$(".col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
-			$("td.root[index='" + index + "']").html(count);
+			$('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
+			$('#' + target + " td.root[index='" + index + "']").html(count);
 
 			$(tableRow).attr('index', index);
 			$(tableRow).attr('unixtime', row['unixtime']);
@@ -291,7 +291,7 @@ function queryHWSet(db, table, query, field) {
 		$('#messages').html('<strong>Query Completed</strong>');
 		$('#hover_msg').hide();
 
-		$('td.root').each(function() {
+		$('#' + target + ' td.root').each(function() {
 			var count = $(this).html();
 			if (count > 1) {
 				$(this).html(count + "<strong style='color:SteelBlue;float:right'>+</strong>");
@@ -304,10 +304,10 @@ function queryHWSet(db, table, query, field) {
 		$('.col_unixtime').hide();
 
 		console.log('COLCLASS: ' + colClass);
-		$('td.' + colClass).css('border-left', '2px solid SteelBlue');
-		$('td.' + colClass).css('border-right', '2px solid SteelBlue');
+		$('#' + target + ' td.' + colClass).css('border-left', '2px solid SteelBlue');
+		$('#' + target + ' td.' + colClass).css('border-right', '2px solid SteelBlue');
 
-		$('td.col_answer').on('click', function() {
+		$('#' + target + ' td.col_answer').on('click', function() {
 			$ans = $(this).find('.answer_cell');
 			// console.log(ans);
 			$ans.each(function() {
@@ -325,68 +325,68 @@ function queryHWSet(db, table, query, field) {
 		});
 
 		if (field != 'unixtime') {
-			$('td').css('color', '#ccc');
-			$('td.' + colClass).css('color', '#000');
-			$('td.col_count').css('color', '#000');
+			$('#' + target + ' td').css('color', '#ccc');
+			$('#' + target + ' td.' + colClass).css('color', '#000');
+			$('#' + target + ' td.col_count').css('color', '#000');
 		} else {
-			$('td').css('color', '#000');
+			$('#' + target + ' td').css('color', '#000');
 		}
 
-		$('td.col_count').on('click', function() {
+		$('#' + target + ' td.col_count').on('click', function() {
 			// var bgcolor = $("tr[index='" + $(this).attr('index') + "']").first().css('background-color');
 			var index = $(this).closest('tr').attr('index');
 			var clicked = 1 - parseInt($(this).closest('tr').find('td.col_count').attr('clicked'));
-			$(".col_count[index='" + index + "']").attr('clicked', clicked);
-			$(".col_count[index='" + index + "']").closest('tr').attr('clicked', clicked);
+			$('#' + target + " .col_count[index='" + index + "']").attr('clicked', clicked);
+			$('#' + target + " .col_count[index='" + index + "']").closest('tr').attr('clicked', clicked);
 
-			$("td").css('color', '');
-			$("td." + colClass).css('color', '#000');
-			$("td.col_count").css('color', '#000');
-			$("tbody tr[clicked=1] td").css('color', '#000');
-			$("tbody tr[clicked=1][index='" + index + "'] td.col_count, tbody tr[clicked=1][index='" + index + "'] td.col_chkbox").css('background-color', 'hsl(' + highlightHue + ', 45%, 90%');
+			$('#' + target + " td").css('color', '');
+			$('#' + target + " td." + colClass).css('color', '#000');
+			$('#' + target + " td.col_count").css('color', '#000');
+			$('#' + target + " tbody tr[clicked=1] td").css('color', '#000');
+			$('#' + target + " tbody tr[clicked=1][index='" + index + "'] td.col_count, #" + target + " tbody tr[clicked=1][index='" + index + "'] td.col_chkbox").css('background-color', 'hsl(' + highlightHue + ', 45%, 90%');
 			highlightHue = (highlightHue + 75) % 360;
-			$("tbody tr[clicked!=1][field!='count']").css('color', '');
-			$("tbody tr[clicked!=1] td").css('background-color', '');
+			$('#' + target + " tbody tr[clicked!=1][field!='count']").css('color', '');
+			$('#' + target + " tbody tr[clicked!=1] td").css('background-color', '');
 
-			$("tbody tr[clicked=1]").show();
-			$("tbody tr[clicked=1] td.col_chkbox input[type='checkbox']").prop('checked', true);
-			$("tbody tr[clicked!=1]").hide();
-			$("tbody tr[clicked!=1] td.col_chkbox input[type='checkbox']").prop('checked', false);
-			$("tbody tr.root").show();
+			$('#' + target + " tbody tr[clicked=1]").show();
+			$('#' + target + " tbody tr[clicked=1] td.col_chkbox input[type='checkbox']").prop('checked', true);
+			$('#' + target + " tbody tr[clicked!=1]").hide();
+			$('#' + target + " tbody tr[clicked!=1] td.col_chkbox input[type='checkbox']").prop('checked', false);
+			$('#' + target + " tbody tr.root").show();
 
-			$("td.col_count[clicked=1]").each(function() {
+			$('#' + target + " td.col_count[clicked=1]").each(function() {
 				$(this).html($(this).html().replace(/\+/, '-'));
 			});
-			$("td.col_count[clicked!=1]").each(function() {
+			$('#' + target + " td.col_count[clicked!=1]").each(function() {
 				$(this).html($(this).html().replace(/\-/, '+'));
 			});
 		});
 
-		$("td[field='sid']").on('click', function() {
-			// baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.prob.eq('" + $('#problem_sel').val() + "'), table.sid.eq('" + $(this).text() + "')))";
+		$('#' + target + " td[field='sid']").on('click', function() {
 			baseQuery = "select(table.time, table.unixtime, table.sid, table.prob, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
 			$('#problem_sel').val('Select ...');
 			$('#query').val(baseQuery);
-			queryHWSet(db, logTable, baseQuery + '.orderBy(table.prob, lf.Order.ASC)', 'prob');
-			$('th[field="prob"]').attr('clicked', 1);
+			queryHWSet(db, logTable, baseQuery + '.orderBy(table.prob, lf.Order.ASC)', 'prob', 'modalTable');
+			$('#modalTable th[field="prob"]').attr('clicked', 1);
+			$('.modal-title').text($('#hwset').val() + ' - ' + $(this).text());
 			clickedArray['prob'] = 1;
 			sortField = 'prob';
 			updateButtons();
+			$('#student_modal').modal('show');
 		});
 
-		// mathViewInitialize();
-		$('#expand').click(function() {
-			$('tr.branch').show();
+		$('#' + target + ' .expand_all').click(function() {
+			$('#' + target + ' tr.branch').show();
 		});
-		$('#collapse').on('click', function() {
-			$('tr.branch').hide();
+		$('#' + target + ' .collapse_all').on('click', function() {
+			$('#' + target + ' tr.branch').hide();
 		});
 
 
 		// http://jsfiddle.net/jakecigar/QB9RT/
 		checkBoxes = $('.chkbox');
-		$('.chkbox').off();
-		$('.chkbox').click(function (ev) {
+		$('#' + target + ' .chkbox').off();
+		$('#' + target + ' .chkbox').click(function (ev) {
 			if (ev.shiftKey) {
 				var last = checkBoxes.index(lastSelected);
 				var first = checkBoxes.index(this);
@@ -401,8 +401,8 @@ function queryHWSet(db, table, query, field) {
 			}
 		});
 
-		$('.chkbox, #check_all').on('change', function () {
-			$('.chkbox').each(function() {
+		$('#' + target + ' .chkbox,' + '#' + target + ' .check_all').on('change', function () {
+			$('#' + target + ' .chkbox').each(function() {
 				if ($(this).prop('checked')) {
 					$(this).closest('tr').find('td').css('color', '#000');
 				} else {
@@ -411,10 +411,10 @@ function queryHWSet(db, table, query, field) {
 			});
 		});
 
-		$('#render').click(function() {
+		$('#' + target + ' .render').click(function() {
 			console.log('RENDER');
 			var ans;
-			$(".chkbox:input:checked").each(function() {
+			$('#' + target + " .chkbox:input:checked").each(function() {
 				$ans = $(this).closest('tr').find('.answer_cell');
 				$ans.each(function() {
 					if (!($(this).hasClass('rendered'))) {
@@ -427,11 +427,11 @@ function queryHWSet(db, table, query, field) {
 			});
 		});
 
-		$('#unrender').click(function() {
+		$('#' + target + ' .unrender').click(function() {
 			console.log('UNRENDER');
 			var $answers;
 			var html;
-			$(".chkbox:input:checked").each(function() {
+			$('#' + target + " .chkbox:input:checked").each(function() {
 				$answers = $(this).closest('tr').find('.answer_cell');
 				$answers.each(function() {
 					html = $(this).find('script[type="math/asciimath"]').html();
@@ -441,7 +441,7 @@ function queryHWSet(db, table, query, field) {
 			});
 		});
 
-		$('#mainTable').show();
+		$('#' + target).show();
 	});
 }
 
@@ -464,7 +464,7 @@ function updateButtons(db, logTable) {
 	$('.field_checkbox').on('change', function() {
 		$('th[field!="chkbox"][field!="count"], td[field!="chkbox"][field!="count"]').each(function() {
 			var field = $(this).attr('field');
-			if ($(".field_checkbox[field='" + field + "'][field!='unixtime']").is(':checked')) {
+			if ($('#' + target + " .field_checkbox[field='" + field + "'][field!='unixtime']").is(':checked')) {
 				$(this).show();
 			} else {
 				$(this).hide();
@@ -499,10 +499,10 @@ function updateButtons(db, logTable) {
 		query = baseQuery +  ".orderBy(" + sort + ", lf.Order.DESC)";
 		$('#query').val(query);
 
-		queryHWSet(db, logTable, query, sortField);
+		queryHWSet(db, logTable, query, sortField, $(this).closest('table').attr('id'));
 	});
 
-	$("#check_all").on('click', function() {
+	$(".check_all").on('click', function() {
 		if ($(this).is(':checked')) {
 			$('.chkbox').prop('checked', true);
 		} else {
@@ -513,6 +513,9 @@ function updateButtons(db, logTable) {
 	$("th div.triangle").off();
 	$("th div.triangle").on('click', function() {
 		console.log('CLICKED');
+
+		let $target = $(this).closest('table');
+
 		$('th div.triangle').html('&#x25b7;');
 		sortField = $(this).closest('th').attr('field');
 
@@ -522,25 +525,29 @@ function updateButtons(db, logTable) {
 
 		$(this).closest('th').attr('clicked', clicked);
 
-		var tbody = $('#mainTable').find('tbody');
+		var $tbody = $target.find('tbody');
 		if (sortField != 'count' && sortField != 'prob' && sortField != 'time' && sortField != 'score') {
-			tbody.find('tr').sort(function(a, b) {
+			$tbody.find('tr').sort(function(a, b) {
 				return clicked*($('td[field="' + sortField + '"]', a).html().localeCompare($('td[field="' + sortField + '"]', b).html())) || +$(b).attr('unixtime') - +$(a).attr('unixtime');
-			}).appendTo(tbody);
+			}).appendTo($tbody);
 		} else if (sortField == 'time') {
-			tbody.find('tr').sort(function(a, b) {
+			$tbody.find('tr').sort(function(a, b) {
 				return clicked*(+$(a).attr('unixtime') - +$(b).attr('unixtime'));
-			}).appendTo(tbody);
+			}).appendTo($tbody);
 		} else if (sortField == 'score') {
-			tbody.find('tr').sort(function(a, b) {
+			$tbody.find('tr').sort(function(a, b) {
 				return clicked*(parseInt($('td[field="' + sortField + '"]', a).html()) - parseInt($('td[field="' + sortField + '"]', b).html())) || clicked*($('td[field="result"]', a).html().localeCompare($('td[field="result"]', b).html())) || +$(b).attr('unixtime') - +$(a).attr('unixtime');
-			}).appendTo(tbody);
+			}).appendTo($tbody);
+		} else if (sortField == 'prob') {
+			$tbody.find('tr').sort(function(a, b) {
+				return clicked*(parseInt($('td[field="' + sortField + '"]', a).html()) - parseInt($('td[field="' + sortField + '"]', b).html())) || +$(b).attr('unixtime') - +$(a).attr('unixtime');
+			}).appendTo($tbody);
 		} else {
-			tbody.find('tr').sort(function(a, b) {
+			$tbody.find('tr').sort(function(a, b) {
 				return clicked*(parseInt($('td[field="' + sortField + '"]', a).html()) - parseInt($('td[field="' + sortField + '"]', b).html())) || ($('td[field="' + groupField + '"]', a).html().localeCompare($('td[field="' + groupField + '"]', b).html())) || +$(b).attr('unixtime') - +$(a).attr('unixtime');
-			}).appendTo(tbody);
+			}).appendTo($tbody);
 		}
-		tbody.find('tr.branch').each(function() {
+		$tbody.find('tr.branch').each(function() {
 			var index = $(this).closest('th').attr('index');
 			$(this).closest('th').detach().insertAfter($("tr.root[index='" + index + "']"));
 		});

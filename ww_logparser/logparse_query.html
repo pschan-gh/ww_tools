@@ -1,12 +1,12 @@
 <html>
 <head>
-<meta charset="utf-8" />
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
-<script
-  src="https://code.jquery.com/jquery-3.3.1.min.js"
-  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-  crossorigin="anonymous">
+    <script
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous">
 </script>
 
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -21,12 +21,12 @@
 
 <script type='text/javascript'>
 MathJax.Hub.Register.StartupHook('AsciiMath Jax Config', function () {
-var AM = MathJax.InputJax.AsciiMath.AM;
-for (var i=0; i< AM.symbols.length; i++) {
-    if (AM.symbols[i].input == '**') {
-    AM.symbols[i] = {input:"**", tag:"msup", output:"^", tex:null, ttype: AM.TOKEN.INFIX};
+    var AM = MathJax.InputJax.AsciiMath.AM;
+    for (var i=0; i< AM.symbols.length; i++) {
+        if (AM.symbols[i].input == '**') {
+            AM.symbols[i] = {input:"**", tag:"msup", output:"^", tex:null, ttype: AM.TOKEN.INFIX};
+        }
     }
-}
 });
 /* Make sure mathjax is confugued for AsciiMath input */
 MathJax.Hub.Config(["input/Tex","input/AsciiMath","input/TeX", "output/HTML-CSS"]);
@@ -34,13 +34,13 @@ MathJax.Hub.Config(["input/Tex","input/AsciiMath","input/TeX", "output/HTML-CSS"
 
 <style>
 
-#check_all {
+.check_all {
     margin-top:5px;
     float:left;
 }
 
 #render_dropdown {
-float:right;
+    float:right;
 }
 
 .triangle {
@@ -72,6 +72,11 @@ thead {
     width:100%;
     height:85%;
 }
+
+tbody {
+    height:90%;
+}
+
 .table td {
     color: #bbb;
 }
@@ -122,7 +127,7 @@ a {
 </head>
 
 <body>
-    <div style="width:100%;">
+    <div style="width:100%;height:100%;overflow-y:hidden">
         <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
             <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
         </div>
@@ -183,30 +188,30 @@ a {
             </div>
             <table id="mainTable" class='table table-bordered table-hover'>
                 <thead>
-                    <tr id="header_row">
+                    <tr id="header_row" class="header_row">
                         <th id="th_chkbox" field="chkbox" class="col_chkbox">
-                            <input id="check_all" type="checkbox" />
+                            <input class="check_all" type="checkbox" />
                             <div id='render_dropdown' class="dropdown show" style="display:inline-block">
                                 <a href="#" role="button" id="renderMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     &#x2699;
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="renderMenuLink">
-                                    <a id="render" href="#" class="dropdown-item">Render</a>
-                                    <a id="unrender" href="#" class="dropdown-item">Unrender</a>
+                                    <a id="render" class="render" href="#" class="dropdown-item">Render</a>
+                                    <a id="unrender" class="unrender" href="#" class="dropdown-item">Unrender</a>
                                 </div>
                             </div>
                         </th>
                         <th id="th_count" clicked="0" field="count" class="col_count" >
-                        <div id='count_dropdown' class="dropdown show" style="display:inline-block">
-                            <a href="#" role="button" id="countMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                #
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="countMenuLink">
-                                <a id="expand" href="#" class="dropdown-item">Expand All</a>
-                                <a id="collapse" href="#" class="dropdown-item">Collapse All</a>
+                            <div id='count_dropdown' class="dropdown show" style="display:inline-block">
+                                <a href="#" role="button" id="countMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    #
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="countMenuLink">
+                                    <a id="expand" href="#" class="expand_all dropdown-item">Expand All</a>
+                                    <a id="collapse" href="#" class="collapse_all dropdown-item">Collapse All</a>
+                                </div>
                             </div>
-                        </div>
-                        <div class="triangle">&#x25b7;</div>
+                            <div class="triangle">&#x25b7;</div>
                         </th>
                         <th id="th_time" clicked="0" field="time" class="col_time"><a href="#">Time</a><div class='triangle'></div></th>
                         <th id="th_sid" clicked="0" field="sid" class="col_sid"><a href="#">SID</a><div class='triangle'></div>
@@ -215,9 +220,60 @@ a {
                         <th id="th_answer" clicked="0" field="answer" class="col_answer"><a href="#">Answer</a><div class='triangle'></div></th>
                     </tr>
                 </thead>
-                <tbody style="display:block;height:100%;overflow:auto;">
+                <tbody style="display:block;overflow:auto;">
                 </tbody>
             </table>
+        </div>
+        <div id="student_modal" class="modal" tabindex="-1" role="dialog" aria-labelledby="student_modal" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="dialog" style="height:80%;max-width:80%">
+                <div class="modal-content" style="height:100%">
+                    <div class="modal-header" style="background-color:SteelBlue;color:white">
+                        <h5 class="modal-title">Single Student Result</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:white">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" style="height:100%;overflow-x:scroll" >
+                        <table id="modalTable" class='table table-bordered table-hover' style="width:100%">
+                            <thead>
+                                <tr id="header_row" class="header_row">
+                                    <th id="th_chkbox" field="chkbox" class="col_chkbox">
+                                        <input class="check_all" type="checkbox" />
+                                        <div id='render_dropdown' class="dropdown show" style="display:inline-block">
+                                            <a href="#" role="button" id="renderMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                &#x2699;
+                                            </a>
+                                            <div class="dropdown-menu" aria-labelledby="renderMenuLink">
+                                                <a id="render" class="render" href="#" class="dropdown-item">Render</a>
+                                                <a id="unrender" class="unrender" href="#" class="dropdown-item">Unrender</a>
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th id="th_count" clicked="0" field="count" class="col_count" >
+                                        <div id='count_dropdown' class="dropdown show" style="display:inline-block">
+                                            <a href="#" role="button" id="countMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                #
+                                            </a>
+                                            <div class="dropdown-menu" aria-labelledby="countMenuLink">
+                                                <a id="expand" href="#" class="expand_all dropdown-item">Expand All</a>
+                                                <a id="collapse" href="#" class="collapse_all dropdown-item">Collapse All</a>
+                                            </div>
+                                        </div>
+                                        <div class="triangle">&#x25b7;</div>
+                                    </th>
+                                    <th id="th_time" clicked="0" field="time" class="col_time"><a href="#">Time</a><div class='triangle'></div></th>
+                                    <th id="th_sid" clicked="0" field="sid" class="col_sid"><a href="#">SID</a><div class='triangle'></div>
+                                    </th>
+                                    <th id="th_result" clicked="0" field="result" class="col_result"><a href="#">Result</a><div class='triangle'></div></th>
+                                    <th id="th_answer" clicked="0" field="answer" class="col_answer"><a href="#">Answer</a><div class='triangle'></div></th>
+                                </tr>
+                            </thead>
+                            <tbody style="display:block;height:100%;overflow:auto;">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
