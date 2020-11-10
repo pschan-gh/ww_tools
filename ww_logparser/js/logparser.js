@@ -9,6 +9,23 @@ var highlightHue = 0;
 var lastSelected;
 var checkBoxes;
 
+var maskSID = 1;
+var salt = Math.random();
+
+var url = new URL(window.location.href);
+maskSID = url.searchParams.get("maskSID") ? url.searchParams.get("maskSID") : maskSID;
+
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+function makeid(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
 function readSingleFile(e) {
 	hwsets = [];
 	$("#hwset").html('<option value="Select ...">Select ...</option>');
@@ -89,7 +106,7 @@ function initializeDB(contents) {
 				utime = match[2];
 				metaData = match[1].split(/\|/);
 				time = metaData[0];
-				sid = metaData[1];
+				sid = maskSID == 0 ? metaData[1] : CryptoJS.MD5(metaData[1] + salt).toString(CryptoJS.enc.Hex).slice(0, 8);
 				hwset = metaData[2];
 				prob = parseInt(metaData[3]);
 				result = metaData[4];
