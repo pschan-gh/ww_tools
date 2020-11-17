@@ -24,8 +24,10 @@ var webworkFields = ['student_id', 'lname', 'fname', 'status', 'comment', 'secti
 var mainArray = new Array();
 
 var emailSuffix;
+var passwordAutoGen;
 var url = new URL(window.location.href);
-emailSuffix = url.searchParams.get("maskSID") ? url.searchParams.get("maskSID") : '';
+emailSuffix = url.searchParams.get("email_suffix") ? url.searchParams.get("email_suffix") : '';
+passwordAutoGen = url.searchParams.get("password_auto") ? url.searchParams.get("password_auto") : 'false';
 
 function report () {
 };
@@ -132,6 +134,17 @@ function updateTable(db, table, data, headers, key, isPrimary) {
     }
 }
 
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+function passwordGen(length) {
+   var result           = '';
+   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
 function updateRows(data, db, table, secondaryDbKey) {
     var str, row;
     var newRows = [];
@@ -147,43 +160,27 @@ function updateRows(data, db, table, secondaryDbKey) {
         let sanitizedField;
         let dataRow = data[0];
         console.log(dataRow);
-        // let idRe = /id\s*$/i;
-        let idRe = new RegExp($('#idRe').val(), 'i');
-        // let fullnameRe = /(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)/i;
-        let fullnameRe = new RegExp($('#fullnameRe').val(), 'i');
-        // let firstnameRe = /First Name\s*$/i;
-        let firstnameRe = new RegExp($('#firstnameRe').val(), 'i');
-        // let lastnameRe = /Last Name\s*$/i;
-        let lastnameRe = new RegExp($('#lastnameRe').val(), 'i');
-        // let programRe = /program|major/i;
-        let programRe = new RegExp($('#programRe').val(), 'i');
-        // let sectionRe = /section/i;
-        let sectionRe = new RegExp($('#sectionRe').val(), 'i');
-        let emailRe = new RegExp($('#emailRe').val(), 'i');
+        
+        let re = {};
+        re['student_id'] = new RegExp($('#idRe').val(), 'i');
+        re['fullname'] = new RegExp($('#fullnameRe').val(), 'i');
+        re['firstname'] = new RegExp($('#firstnameRe').val(), 'i');
+        re['lastname'] = new RegExp($('#lastnameRe').val(), 'i');
+        re['program'] = new RegExp($('#programRe').val(), 'i');
+        re['section'] = new RegExp($('#sectionRe').val(), 'i');
+        re['email'] = new RegExp($('#emailRe').val(), 'i');
+        re['password'] = new RegExp($('#passwordRe').val(), 'i');
 
         for (key in dataRow) {
-            if (key.match(idRe)) {
-                fieldMask['student_id'] = key;
-            }
-            if (key.match(fullnameRe)) {
-                fieldMask['fullname'] = key;
-            }
-            if (key.match(firstnameRe)) {
-                fieldMask['firstname'] = key;
-            }
-            if (key.match(lastnameRe)) {
-                fieldMask['lastname'] = key;
-            }
-            if (key.match(programRe)) {
-                fieldMask['program'] = key;
-            }
-            if (key.match(sectionRe)) {
-                fieldMask['section'] = key;
-            }
-            if (key.match(emailRe)) {
-                fieldMask['email'] = key;
+            for (field in re) {
+                if (key.match(re[field]) && key.match(re[field])!='' && typeof key.match(re[field]) != 'undefined' && key.match(re[field])!=null) {
+                    fieldMask[field] = key;
+                    break;
+                }
             }
         }
+
+        
         console.log(fieldMask);
 
         for (let i = 0; i < data.length; i++) {
@@ -233,7 +230,12 @@ function updateRows(data, db, table, secondaryDbKey) {
                 rowObj[headerIndex['EMAIL']] = dataRow[fieldMask['email']];
             }
             rowObj[headerIndex['USER_ID']] = dataRow[fieldMask['student_id']];
-            rowObj[headerIndex['PASSWORD']] = 'FAILSAFE' + Math.floor(Math.random() * 10000).toString();
+            if (passwordAutoGen == 'true') {
+                // rowObj[headerIndex['PASSWORD']] = 'FAILSAFE' + Math.floor(Math.random() * 10000).toString();
+                rowObj[headerIndex['PASSWORD']] = passwordGen(8);
+            } else {
+                rowObj[headerIndex['PASSWORD']] = dataRow[fieldMask['PASSWORD']];
+            }
             rowObj[headerIndex['PERMISSION']] = '0';
 
 
@@ -354,52 +356,48 @@ function recalculateColumns(db, table, columns) {
     console.log(functionStr);
     console.log(columnData);
     let queryFunc = new Function('db', 'table',  functionStr);
-    // queryFunc(db, table).then(function(rows) {
-    //     // let value = '';
-    //     let sanitizedField;
-    //     let dbField;
-    //     columns.forEach(col => {
-    //         let sfield = col.name;
-    //         let routine = col.routine;
-    //         // console.log(sfield);
-    //         // console.log(routine);
-    //         // console.log(headerIndex[sfield]);
-    //         columnData[headerIndex[sfield]].routine = routine;
-    // 
-    //         rows.forEach(function(rowObj) {
-    // 
-    //             let routineStr = routine.replace(/\(@([^\)]+)\)/g, 'row[headerIndex[sanitize("$1")]]');
-    //             // console.log(routineStr);
-    //             let routineFunc = new Function('row',  routineStr);
-    //             // console.log(sfield);
-    //             // console.log(headerIndex[sfield]);
-    //             rowObj[headerIndex[sfield]] = routineFunc(rowObj);
-    //             var datum = {};
-    //             for (var j = 0; j < sanitizedHeaders.length; j++) {
-    //                 sanitizedField = sanitizedHeaders[j];
-    //                 if (sanitizedField in headerIndex) {
-    //                     dbField = headerIndex[sanitizedField];
-    //                     if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
-    //                         datum[dbField] = rowObj[dbField];
-    //                     } else {
-    //                         datum[dbField] = "";
-    //                     }
-    //                 }
-    //             }
-    //             for (var j = 0; j < maxCols; j++) {
-    //                 var key = 'COL' + j.toString();
-    //                 if (!(key in datum)) {
-    //                     datum[key] = "";
-    //                 }
-    //             }
-    //             newRows.push(table.createRow(datum));
-    //         });
-    //     });
-    //     db.insertOrReplace().into(table).values(newRows).exec().then(function() {
-    //         console.log(groupField);
-    //         queryHWSet(db, table, baseQuery, groupField);
-    //     });
+    let sanitizedField;
+    let dbField;
+    
+    table.forEach(function(rowObj) {  
+        columns.forEach(col => {
+            let sfield = col.name;
+            let routine = col.routine;
+            columnData[headerIndex[sfield]].routine = routine;
+            
+                  
+            let routineStr = routine.replace(/\(@([^\)]+)\)/g, 'row[headerIndex[sanitize("$1")]]');
+            // console.log(routineStr);
+            let routineFunc = new Function('row',  routineStr);
+            // console.log(sfield);
+            // console.log(headerIndex[sfield]);
+            rowObj[headerIndex[sfield]] = routineFunc(rowObj);
+            var datum = {};
+            for (var j = 0; j < sanitizedHeaders.length; j++) {
+                sanitizedField = sanitizedHeaders[j];
+                if (sanitizedField in headerIndex) {
+                    dbField = headerIndex[sanitizedField];
+                    if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
+                        datum[dbField] = rowObj[dbField];
+                    } else {
+                        datum[dbField] = "";
+                    }
+                }
+            }
+            for (var j = 0; j < maxCols; j++) {
+                var key = 'COL' + j.toString();
+                if (!(key in datum)) {
+                    datum[key] = "";
+                }
+            }
+            // newRows.push(datum);
+        });
+    });
+    // db.insertOrReplace().into(table).values(newRows).exec().then(function() {
+    //     console.log(groupField);
+    //     queryHWSet(db, newRows, baseQuery, groupField);
     // });
+    // queryHWSet(db, newRows, baseQuery, groupField);
     queryHWSet(db, table, baseQuery, groupField);
 }
 
@@ -1136,7 +1134,8 @@ function loadPrimary(data, headers) {
     
     // $('#headers').text(headers.join(','));
     for (key in data[0]) {
-        $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
+        // $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
+        $('select.re').append('<option>' + key + '</option>');
     };
     $('#regex_bin').modal('show');
     
@@ -1303,6 +1302,12 @@ $(function () {
 
      $('[data-toggle="tooltip"]').tooltip();
 
+     $('select.re').change(function() {
+         if (!$(this).val().match(/Select/)) {
+             $(this).closest('div.row').find('input[type="text"]').val($(this).val());
+         }
+     });
+
      $('#reset').click(function() {
          $('.nav-item.dropdown.update').hide();
          $('#key_sel').closest('li').find('a').removeClass("disabled").attr('aria-disabled', 'false');
@@ -1343,5 +1348,6 @@ $(function () {
          schemaBuilder = null;
          maxCols = 100;
          columnData = new Object();
+         mainArray = new Array();
      });
 })
