@@ -1,8 +1,8 @@
 <html>
 <head>
     <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
     <script
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
@@ -65,13 +65,33 @@ thead {
 }
 
 .table {
-    margin:auto;
+    /* margin:auto; */
     position:absolute;
-    top:5px;
-    left:0;
+    top:2.5%;
+    left:5%;
     right:0;
+    width:90%;
+    height:95%;
+}
+
+#menu_button {
+z-index:999;
+position:absolute;
+left:0;
+top:0;
+}
+
+nav.navbar {
+    position:absolute;
+    top:0;
+    left:0;
     width:100%;
-    height:85%;
+    display:none;
+    z-index:999;
+}
+
+nav.navbar:hover {
+    display:block;    
 }
 
 tbody {
@@ -129,12 +149,13 @@ a {
 
 <body>
     <div style="width:100%;height:100%;overflow-y:hidden">
-        <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
-            <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
-        </div>
+        <a id="menu_button" class="nav-link" href="#" role="button" onclick="$('nav.navbar').show();"><i class="material-icons">menu</i></a>
         <nav class="navbar navbar-expand-md navbar-light bg-light">
             <div class="navbar-collapse collapse">
                 <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" role="button" onclick="$('nav.navbar').hide();"><i class="material-icons">menu</i></a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Open answer_log
@@ -146,14 +167,14 @@ a {
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <select class="form-control-sm" id="hwset" name="hwset">
-                                <option value="">Select Assignment Set</option>
+                                <option value="">...</option>
                             </select>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <select class="form-control-sm" id="problem_sel" name="problem_sel">
-                                <option value="Select">Select Problem Set</option>
+                                <option value="Select">...</option>
                             </select>
                         </a>
                     </li>
@@ -183,10 +204,13 @@ a {
                 </ul>
             </div>
         </nav>
-        <div style="position:relative;height:95%;width:80%;margin:auto">
+        <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
+            <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
+        </div>
+        <div style="position:absolute;top:0;left:0;height:100%;width:100%;z-index:50">
             <div style="margin-top:5px;display:none" id="instructions">
                 Click on table headers to group and sort.
-            </div>
+            </div>            
             <table id="mainTable" class='table table-bordered table-hover'>
                 <thead>
                     <tr id="header_row" class="header_row">
@@ -197,8 +221,8 @@ a {
                                     &#x2699;
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="renderMenuLink">
-                                    <a id="render" class="render" href="#" class="dropdown-item">Render</a>
-                                    <a id="unrender" class="unrender" href="#" class="dropdown-item">Unrender</a>
+                                    <a id="render" class="render dropdown-item" href="#">Render</a>
+                                    <a id="unrender" class="unrender dropdown-item" href="#">Unrender</a>
                                 </div>
                             </div>
                         </th>

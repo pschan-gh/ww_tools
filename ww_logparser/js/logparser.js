@@ -5,6 +5,7 @@ var headerNames = [];
 var baseQuery;
 var clickedArray = {};
 var highlightHue = 0;
+var logList = [];
 
 var lastSelected;
 var checkBoxes;
@@ -15,9 +16,13 @@ var salt = Math.random();
 var url = new URL(window.location.href);
 maskSID = url.searchParams.get("maskSID") ? url.searchParams.get("maskSID") : maskSID;
 
-const wwFields = ['sid', 'answer', 'index', 'unixtime', 'time', 'hwset', 'prob' , 'result'];
+const wwFields = ['sid', 'answer', 'index', 'unixtime', 'time', 'hwset', 'prob' , 'result', 'score'];
 
-const dbFields = ['`sid`', '`answer`', '`index`', '`unixtime`', '`time`', '`hwset`', '`prob`' , '`result`'];
+const dbFields = ['`sid`', '`answer`', '`index`', '`unixtime`', '`time`', '`hwset`', '`prob`' , '`result`', '`score`'];
+
+const entryRegexp = /^(.*?)\t(\d+)\t(.*?)$/;
+const dqRegex = /\"/ig;
+
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 function makeid(length) {
@@ -82,7 +87,6 @@ function initializeDB(contents) {
     $('td').css('color', '#000');
     $('tbody').html('');
     
-    var dqRegex = /\"/ig;
     
     var contents = contents.replace(/,/g, '_');
     
@@ -100,49 +104,18 @@ function initializeDB(contents) {
     initSqlJs(config).then(function(SQL){
         var db = new SQL.Database();
         let meta;
+        let logTable = 'LogTable';
         
         // db.run("CREATE TABLE DataTable (" + colQuery + ");");
-        db.run("CREATE TABLE LogTable (`sid` char, `answer` blob, `index` int PRIMARY KEY, `unixtime` int, `time` char, `hwset` char, `prob` char, `result` char);");
+        db.run("CREATE TABLE LogTable (`sid` char, `answer` blob, `index` int PRIMARY KEY, `unixtime` int, `time` char, `hwset` char, `prob` int, `result` char, `score` char);");
         
-        let results = db.exec("SELECT * FROM LogTable ");
-        
-        var row;
-        var rows = [];
-        var logTable = 'LogTable';
-        var entryRegexp = /^(.*?)\t(\d+)\t(.*?)$/;
-        var logList = contents.split(/\r?\n/);
-        var answer, utime, metaData, time, sid, hwset, result;
-        var prob = 0;
-        let queryINSERT = '';
-        let datum = [];
-        for (var i = 0; i < logList.length - 1; i++) {
-            var match = entryRegexp.exec(logList[i]);
+        // let results = db.exec("SELECT * FROM LogTable ");
+        logList = contents.split(/\r?\n/);
+                
+        logList.forEach(entry => {
+            var match = entryRegexp.exec(entry);
             if (typeof(match) !== 'undefined' && match !== null)  {
-                answer = match[3].replace(dqRegex, "").replace(/\s*\t\s*/g, ';').replace(/[^a-z0-9\;\+\-\_\^\(\)\[\]\*\/\\]/ig, '').replace(/inf/g, '\\infty');
-                utime = match[2];
-                metaData = match[1].split(/\|/);
-                time = metaData[0];
-                sid = maskSID == 0 ? metaData[1] : CryptoJS.MD5(metaData[1] + salt).toString(CryptoJS.enc.Hex).slice(0, 8);
-                hwset = metaData[2];
-                prob = parseInt(metaData[3]);
-                result = metaData[4];
-                if (typeof(result) == 'undefined' || result == null) {
-                    result = '1';
-                }
-                
-                row = {
-                    'index': i,
-                    'unixtime': utime,
-                    'sid': "'" + sid + "'",
-                    'answer': "'" + answer + "'",
-                    'time': "'" + time + "'",
-                    'hwset': "'" + hwset + "'",
-                    'prob': prob,
-                    'result': "'" + result + "'"
-                };            
-                // console.log(row);
-                rows.push(row);
-                
+                hwset = match[1].split(/\|/)[2];
                 if (!(hwsets.includes(hwset))) {
                     console.log('NEW HWSET');
                     console.log(hwsets);
@@ -152,56 +125,26 @@ function initializeDB(contents) {
                     $(o).html(hwset);
                     $(o).val(hwset);
                     $("#hwset").append(o);
-                }                
-                if (i % 200 == 0) {
-                    if (queryINSERT != '' ) {
-                        // console.log('INSERT');
-                        // console.log(queryINSERT);
-                        db.run(queryINSERT); 
-                    }
-                    queryINSERT = '';
-                }
-                datum = []; 
-                wwFields.forEach(field => {
-                    datum.push(row[field]);
-                });
-                queryINSERT += "INSERT INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
+                }                     
             }
-        }
-        // rows.forEach((row, index) => {
-            // if (index % 200 == 0) {
-            //     if (queryINSERT != '' ) {
-            //         console.log('INSERT');
-            //         console.log(queryINSERT);
-            //         db.run(queryINSERT); 
-            //     }
-            //     queryINSERT = '';
-            // }
-            // if (row['hwset'] == "'" + hwset + "'") {
-            //     let datum = []; 
-            //     wwFields.forEach(field => {
-            //         datum.push(row[field]);
-            //     });
-            //     queryINSERT += "INSERT INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
-            // }
-        // });            
-                    
+        });
+                            
         $('#messages').html('<strong>Database Loaded.</strong>');
         $('#hover_msg').hide();
         
         $('#hwset').on('change', function() {
             // baseQuery = "select(table.time, table.sid, table.result, table.answer).from(table).where(table.hwset.eq('" + $(this).val() +"'))";
             let hwset = $(this).val();
-                        
-            baseQuery = 'SELECT `time`, `sid`, `result`, `answer` FROM ' + logTable + ' WHERE hwset = "' + $(this).val() + '";';
-            $('#query').val(baseQuery);
+            loadData(db, 'LogTable', logList, 'hwset', hwset);            
+            // baseQuery = 'SELECT `time`, `sid`, `result`, `answer` FROM ' + logTable + 'WHERE hwset = "' + $(this).val() + '";';
+            // $('#query').val(baseQuery);
             updateProblems(db, logTable, $('#hwset').val());
         });
         
         $('#problem_sel').on('change', function() {
             let problem = $(this).val();
             // baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"'), table.prob.eq('" + problem + "')))";
-            baseQuery = "SELECT `time`, `unixtime` , `sid`, `result`, `answer` FROM " + logTable + " WHERE `hwset` = '" + $('#hwset').val() + "' AND `prob` = '" + problem + "' ORDER BY `unixtime` DESC;";
+            baseQuery = "SELECT `time`, `unixtime` , `sid`, `result`, `score`, `answer` FROM " + logTable + " WHERE `hwset` = '" + $('#hwset').val() + "' AND `prob` = '" + problem + "'";
             $('#query').val(baseQuery);
             clickedArray['time'] = -1;
             queryHWSet(db, logTable, baseQuery, 'time');
@@ -218,6 +161,63 @@ function initializeDB(contents) {
         // updateProblems(db, logTable, $('#hwset').val());
     });
     
+}
+
+function loadData(db, table, loglist, field, value) {
+    var row;
+    var rows = [];
+    var logTable = table;
+    var answer, utime, metaData, time, sid, hwset, result;
+    var prob = 0;
+    let queryINSERT = '';
+    let datum = [];
+    for (var i = 0; i < loglist.length - 1; i++) {
+        var match = entryRegexp.exec(logList[i]);
+        if (typeof(match) !== 'undefined' && match !== null)  {
+            answer = match[3].replace(dqRegex, "").replace(/\t/g, ';').replace(/[^a-z0-9\s\;\+\-\_\^\(\)\[\]\*\/\\]/ig, ''); //.replace(/inf/g, '\\infty');
+            utime = match[2];
+            metaData = match[1].split(/\|/);
+            time = metaData[0];
+            sid = maskSID == 0 ? metaData[1] : CryptoJS.MD5(metaData[1] + salt).toString(CryptoJS.enc.Hex).slice(0, 8);
+            hwset = metaData[2];
+            prob = parseInt(metaData[3]);
+            result = metaData[4];
+            if (typeof(result) == 'undefined' || result == null) {
+                result = '1';
+            }
+            
+            row = {
+                'index': i,
+                'unixtime': utime,
+                'sid': "'" + sid + "'",
+                'answer': "'" + answer + "'",
+                'time': "'" + time + "'",
+                'hwset': "'" + hwset + "'",
+                'prob': prob,
+                'result': "'" + result + "'",
+                'score': "'" + Math.round(100*(result.match(/1/g) || []).length/(result.length)) + '%' + "'"
+            };
+            // console.log(row);
+            if (row[field] != "'" + value + "'") {
+                continue;
+            }
+            rows.push(row);
+                   
+            if (i % 200 == 0) {
+                if (queryINSERT != '' ) {
+                    // console.log('INSERT');
+                    // console.log(queryINSERT);
+                    db.run(queryINSERT); 
+                }
+                queryINSERT = '';
+            }
+            datum = []; 
+            wwFields.forEach(field => {
+                datum.push(row[field]);
+            });
+            queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
+        }
+    }
 }
 
 function queryHWSet(db, table, query, field, target = 'mainTable') {
@@ -249,9 +249,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
 	console.log('FIELD: ' + field);
 
 	console.log('QUERY: ' + query);
-	// var queryFunc = new Function('db', 'table',  'return db.' + query + '.orderBy(table.unixtime, lf.Order.DESC).exec()');
-
-	// return queryFunc(db, logTable).then
+	
     document.getElementById(target).getElementsByTagName('tbody')[0].innerHTML = '';
     let results = db.exec(query);
     
@@ -261,14 +259,21 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         return;
     }
     let row = {};
-    results[0].values.forEach(result => {        
-        row = {
-            'time' : result[0],
-            'unixtime' : result[1],
-            'sid' : result[2],
-            'result' : result[3],
-            'answer' : result[4]
-        }
+    let result;
+    for (let i = 0; i < results[0].values.length; i++) {
+        result = results[0].values[i];
+        row = {};
+        results[0].columns.forEach((entry, index) => {
+            row[entry] = result[index];
+        });     
+        // row = {
+        //     'time' : result[0],
+        //     'unixtime' : result[1],
+        //     'sid' : result[2],
+        //     'result' : result[3],
+        //     'answer' : result[4]
+        // }
+        
         if (count < 1) {            
             headerNames = [];
             $('#' + target + ' th[field!="chkbox"][field!="count"]').remove();
@@ -278,13 +283,13 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
                 $th.html("<a href='#'>" + hfield + "</a><div class='triangle'>&#x25b7;</div>");
                 $th.appendTo($('#' + target + ' .header_row')[0]);
                 headerNames.push(hfield);
-                if (hfield == 'result') {
-                    var score_field = 'score';
-                    var $th = $("<th>", {"id" : 'th' + score_field, 'clicked': '0', 'field': score_field, "class":'col_' + score_field});
-                    $th.html("<a href='#'>" + score_field + "</a><div class='triangle'>&#x25b7;</div>");
-                    $th.appendTo($('#' + target + ' .header_row')[0]);
-                    headerNames.push(score_field);
-                }
+                // if (hfield == 'result') {
+                //     var score_field = 'score';
+                //     var $th = $("<th>", {"id" : 'th_' + score_field, 'clicked': '0', 'field': score_field, "class":'col_' + score_field});
+                //     $th.html("<a href='#'>" + score_field + "</a><div class='triangle'>&#x25b7;</div>");
+                //     $th.appendTo($('#' + target + ' .header_row')[0]);
+                //     headerNames.push(score_field);
+                // }
             }
             $('#' + target + " th[field='" + field + "']").each(function() {
                 $(this).css('background-color', 'SteelBlue');
@@ -314,7 +319,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         $(cell).attr('field', 'count');
         
         if ((prev_row == null) || (prev_row[field] != row[field])) {
-            // $(".col_count[index='" + index + "']:not(:first)").html(count + '&#x21b3;');
+            // console.log('NEW GROUP ' + row[field]);
             $('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
             $('#' + target + " td.root[index='" + index + "']").html(count);
             index++;
@@ -327,6 +332,8 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             $(tableRow).addClass('branch');
             $(tableRow).hide();
         }
+        prev_row = row;
+        
         $(tableRow).attr('clicked', 0);
         $('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
         $('#' + target + " td.root[index='" + index + "']").html(count);
@@ -342,10 +349,13 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         
         headerNames.map(function(hfield) {
             var $td = $("<td>", {'field': hfield, "class":'col_' + hfield});
-            if (hfield != 'score' && hfield != 'answer') {
+            // if (hfield != 'score' && hfield != 'answer') {
+            //     $td.text(row[hfield]);
+            // } else if (hfield == 'score') {
+            //     $td.text(Math.round(100*(row['result'].match(/1/g) || []).length/(row['result'].length)) + '%');
+            // }
+            if (hfield != 'answer') {
                 $td.text(row[hfield]);
-            } else if (hfield == 'score') {
-                $td.text(Math.round(100*(row['result'].match(/1/g) || []).length/(row['result'].length)) + '%');
             }
             if (hfield == 'answer') {
                 var answers = row['answer'].split(/;/);
@@ -363,8 +373,8 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             $td.appendTo($(tableRow));
         });
         
-        prev_row = row;
-    });
+    }
+    
     $('#messages').html('<strong>Query Completed</strong>');
     $('#hover_msg').hide();
     
@@ -440,7 +450,9 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
     });
     
     $('#' + target + " td[field='sid']").on('click', function() {
-        baseQuery = "select(table.time, table.unixtime, table.sid, table.prob, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
+        loadData(db, 'LogTable', logList, 'sid', $(this).text()); 
+        // baseQuery = "select(table.time, table.unixtime, table.sid, table.prob, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
+        baseQuery = "SELECT `time`, `unixtime`, `prob`, `result`, `answer` FROM " + logTable + " WHERE `sid` = '" + $(this).text() + "' ORDER BY `prob` ASC, `unixtime` DESC";
         $('#problem_sel').val('Select ...');
         $('#query').val(baseQuery);
         queryHWSet(db, logTable, baseQuery, 'prob', 'modalTable');
@@ -525,7 +537,7 @@ function updateButtons(db, logTable) {
 	var fieldToLf = {};
 	$('#columns_menu').html('');
 	headerNames.map(function(field) {
-		fieldToLf[field] = 'table.' + field;
+		fieldToLf[field] = field;
 		if (!(clickedArray.hasOwnProperty(field))) {
 			clickedArray[field] = 0;
 		}
@@ -559,12 +571,9 @@ function updateButtons(db, logTable) {
 	fieldToLf['time'] = 'table.unixtime';
 
 	$("th a").off();
-	$("th[field!='count'][field!='chkbox'][field!='score'] a").on('click', function() {
+	$("th[field!='count'][field!='chkbox'] a").on('click', function() {
 		$('th div.triangle').html('&#x25b7;');
 		sortField = $(this).closest('th').attr('field');
-		groupField = sortField;
-		var sort = fieldToLf[sortField];
-
 		var clicked = -1;
 		clickedArray[sortField] = clicked;
 
@@ -572,7 +581,7 @@ function updateButtons(db, logTable) {
 
 		var problem = $('#problem_sel').val();
 
-		query = baseQuery +  " ORDER BY `" + sort + "` DESC";
+		query = baseQuery +  "ORDER BY `" + sortField + "` DESC, `unixtime` DESC";
 		$('#query').val(query);
 
 		queryHWSet(db, logTable, query, sortField, $(this).closest('table').attr('id'));
@@ -709,4 +718,5 @@ $(document).ready(function () {
 			});
 		});
 	});
-})
+});
+
