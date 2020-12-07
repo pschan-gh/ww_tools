@@ -131,47 +131,144 @@ function initializeDB(contents) {
                             
         $('#messages').html('<strong>Database Loaded.</strong>');
         $('#hover_msg').hide();
+                
         
         $('#hwset').on('change', function() {
+            setTimeout(function() { 
+                $('.progress').show();
+                progress = 0;
+                $('.progress-bar').attr('valuenow', '0');
+                $('.progress-bar').css('width', '0' + '%');
+            }, 0);
             // baseQuery = "select(table.time, table.sid, table.result, table.answer).from(table).where(table.hwset.eq('" + $(this).val() +"'))";
             let hwset = $(this).val();
-            loadData(db, 'LogTable', logList, 'hwset', hwset);            
-            // baseQuery = 'SELECT `time`, `sid`, `result`, `answer` FROM ' + logTable + 'WHERE hwset = "' + $(this).val() + '";';
-            // $('#query').val(baseQuery);
-            updateProblems(db, logTable, $('#hwset').val());
+            setTimeout(function() { 
+                loadData(db, 'LogTable', logList, 'hwset', hwset, function(database) { updateProblems(database, logTable, $('#hwset').val()); eventListeners(database, logTable);});
+            }, 0);
         });
+                // updateProblems(db, logTable, $('#hwset').val());        
         
-        $('#problem_sel').on('change', function() {
-            let problem = $(this).val();
-            // baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"'), table.prob.eq('" + problem + "')))";
-            baseQuery = "SELECT `time`, `unixtime` , `sid`, `result`, `score`, `answer` FROM " + logTable + " WHERE `hwset` = '" + $('#hwset').val() + "' AND `prob` = '" + problem + "'";
-            $('#query').val(baseQuery);
-            clickedArray['time'] = -1;
-            queryHWSet(db, logTable, baseQuery, 'time');
-            $('#export').show();
-            
-        });
-        
-        $('#submit').on('click', function() {
-            baseQuery = $('#query').val();
-            queryHWSet(db, logTable, baseQuery, 'unixtime');
-        });
-        
+                
         $('#controlPanel').css('display', 'inline-block');
         // updateProblems(db, logTable, $('#hwset').val());
     });
     
 }
 
-function loadData(db, table, loglist, field, value) {
+function eventListeners(database, logTable) {
+    $('#problem_sel').off();    
+    $('#problem_sel').on('change', function() {
+        let problem = $(this).val();
+        // baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"'), table.prob.eq('" + problem + "')))";
+        baseQuery = "SELECT `time`, `unixtime` , `sid`, `result`, `score`, `answer` FROM " + logTable + " WHERE `hwset` = '" + $('#hwset').val() + "' AND `prob` = '" + problem + "'";
+        $('#query').val(baseQuery);
+        clickedArray['time'] = -1;
+        queryHWSet(database, logTable, baseQuery, 'time');
+        $('#export').show();
+        
+    });
+    $('#submit').off();
+    $('#submit').on('click', function() {
+        baseQuery = $('#query').val();
+        queryHWSet(database, logTable, baseQuery, 'unixtime');
+    });    
+}
+const chunkSize = 5000;
+// var progress = 0;
+// function updateDB(database, logTable, loglist, field, value, total, callback) {
+//     var answer, utime, metaData, time, sid, hwset, result;
+//     var prob = 0;
+//     let datum = [];
+//     let match;
+//     let queryINSERT = '';
+//     if (loglist.length < 1) {
+//         callback(database);
+//         return;
+//     }
+//     // console.log(loglist);
+//     // console.log(loglist.slice(0, 200));
+//     let list = loglist.slice(0, chunkSize);
+//     for (let i = 0; i < list.length - 1; i++) {
+//         match = entryRegexp.exec(list[i]);
+//         if (typeof(match) !== 'undefined' && match !== null)  {
+//             answer = match[3].replace(dqRegex, "").replace(/\t/g, ';').replace(/[^a-z0-9\s\;\+\-\_\^\(\)\[\]\*\/\\]/ig, ''); //.replace(/inf/g, '\\infty');
+//             utime = match[2];
+//             metaData = match[1].split(/\|/);
+//             time = metaData[0];
+//             sid = maskSID == 0 ? metaData[1] : CryptoJS.MD5(metaData[1] + salt).toString(CryptoJS.enc.Hex).slice(0, 8);
+//             hwset = metaData[2];
+//             prob = parseInt(metaData[3]);
+//             result = metaData[4];
+//             if (typeof(result) == 'undefined' || result == null) {
+//                 result = '1';
+//             }
+//             row = {
+//                 'index': i,
+//                 'unixtime': utime,
+//                 'sid': "'" + sid + "'",
+//                 'answer': "'" + answer + "'",
+//                 'time': "'" + time + "'",
+//                 'hwset': "'" + hwset + "'",
+//                 'prob': prob,
+//                 'result': "'" + result + "'",
+//                 'score': "'" + Math.round(100*(result.match(/1/g) || []).length/(result.length)) + '%' + "'"
+//             };
+// 
+//             if (row[field] != "'" + value + "'") {
+//                 continue;
+//             }  
+// 
+//             // console.log(row);            
+// 
+//             datum = []; 
+//             wwFields.forEach(field => {
+//                 datum.push(row[field]);
+//             });
+//             queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";            
+//         }
+// 
+//     }
+//     let dbChain = database;
+// 
+//     // setTimeout(function() {
+//     //     if (queryINSERT != '' ) {        
+//     //         // console.log(queryINSERT);
+//     //         dbChain = database.run(queryINSERT);                
+//     //     }
+//     //     updateDB(dbChain, logTable, loglist.slice(chunkSize), field, value, total, callback);
+//     //     // console.log(total);
+//     //     progress += 100*(chunkSize/total);
+//     //     // console.log(progress);
+//     //     $('.progress-bar').attr('valuenow', progress);
+//     //     $('.progress-bar').css('width', progress + '%');
+//     // }, 0);   
+//     if (queryINSERT != '' ) {        
+//         // console.log(queryINSERT);
+//         dbChain = database.run(queryINSERT);                
+//     }
+//     updateDB(dbChain, logTable, loglist.slice(chunkSize), field, value, total, callback);
+//     // console.log(total);
+//     progress += 100*(chunkSize/total);
+//     // console.log(progress);
+//     $('.progress-bar').attr('valuenow', progress);
+//     $('.progress-bar').css('width', progress + '%');
+// }
+
+function loadData(db, table, loglist, field, value, callback = function() {return 0;}) {
     var row;
-    var rows = [];
+    // var rows = [];
     var logTable = table;
     var answer, utime, metaData, time, sid, hwset, result;
     var prob = 0;
     let queryINSERT = '';
     let datum = [];
+    let progress;
+    
+    
+    console.log(loglist.length);
+    // updateDB(db, table, loglist, field, value, loglist.length, callback);
     for (var i = 0; i < loglist.length - 1; i++) {
+        
         var match = entryRegexp.exec(logList[i]);
         if (typeof(match) !== 'undefined' && match !== null)  {
             answer = match[3].replace(dqRegex, "").replace(/\t/g, ';').replace(/[^a-z0-9\s\;\+\-\_\^\(\)\[\]\*\/\\]/ig, ''); //.replace(/inf/g, '\\infty');
@@ -185,7 +282,6 @@ function loadData(db, table, loglist, field, value) {
             if (typeof(result) == 'undefined' || result == null) {
                 result = '1';
             }
-            
             row = {
                 'index': i,
                 'unixtime': utime,
@@ -197,27 +293,39 @@ function loadData(db, table, loglist, field, value) {
                 'result': "'" + result + "'",
                 'score': "'" + Math.round(100*(result.match(/1/g) || []).length/(result.length)) + '%' + "'"
             };
-            // console.log(row);
+        
             if (row[field] != "'" + value + "'") {
                 continue;
-            }
-            rows.push(row);
-                   
-            if (i % 200 == 0) {
+            }  
+        
+            // console.log(row);
+            if (i % chunkSize == 0) {
                 if (queryINSERT != '' ) {
                     // console.log('INSERT');
-                    // console.log(queryINSERT);
-                    db.run(queryINSERT); 
+                    // console.log(queryINSERT);  
+                    setTimeout(function() {                                            
+                        progress = 100*i/loglist.length;
+                        $('.progress-bar').attr('valuenow', progress);
+                        $('.progress-bar').css('width', progress + '%');
+                    }, 0); 
+                    db.run(queryINSERT);
                 }
                 queryINSERT = '';
             }
+        
             datum = []; 
             wwFields.forEach(field => {
                 datum.push(row[field]);
             });
-            queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
+            queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";            
         }
     }
+    if (queryINSERT != '') {
+        // console.log(queryINSERT);
+        db.run(queryINSERT);
+    }
+    callback(db);
+    // $('.progress').hide();
 }
 
 function queryHWSet(db, table, query, field, target = 'mainTable') {

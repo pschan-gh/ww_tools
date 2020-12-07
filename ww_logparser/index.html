@@ -91,7 +91,7 @@ nav.navbar {
 }
 
 nav.navbar:hover {
-    display:block;    
+    display:block; 
 }
 
 tbody {
@@ -207,7 +207,10 @@ a {
         <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
             <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
         </div>
-        <div style="position:absolute;top:0;left:0;height:100%;width:100%;z-index:50">
+        <div class="progress" style="position:absolute;top:40%;width:50%;text-align:center;margin:auto;z-index:999;display:none;">
+            <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div style="position:absolute;top:0;left:0;height:100%;width:100%;z-index:50">            
             <div style="margin-top:5px;display:none" id="instructions">
                 Click on table headers to group and sort.
             </div>            
@@ -218,7 +221,8 @@ a {
                             <input class="check_all" type="checkbox" />
                             <div id='render_dropdown' class="dropdown show" style="display:inline-block">
                                 <a href="#" role="button" id="renderMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    &#x2699;
+                                    <!-- &#x2699; -->
+                                    <span class="material-icons">settings</span>
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="renderMenuLink">
                                     <a id="render" class="render dropdown-item" href="#">Render</a>
@@ -247,7 +251,7 @@ a {
                 </thead>
                 <tbody style="display:block;overflow:auto;">
                 </tbody>
-            </table>
+            </table>            
         </div>
         <div id="student_modal" class="modal" tabindex="-1" role="dialog" aria-labelledby="student_modal" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="dialog" style="height:80%;max-width:80%">
@@ -266,11 +270,12 @@ a {
                                         <input class="check_all" type="checkbox" />
                                         <div id='render_dropdown' class="dropdown show" style="display:inline-block">
                                             <a href="#" role="button" id="renderMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                &#x2699;
+                                                <!-- &#x2699; -->
+                                                <span class="material-icons">settings</span>
                                             </a>
                                             <div class="dropdown-menu" aria-labelledby="renderMenuLink">
-                                                <a id="render" class="render" href="#" class="dropdown-item">Render</a>
-                                                <a id="unrender" class="unrender" href="#" class="dropdown-item">Unrender</a>
+                                                <a id="render" class="render dropdown-item" href="#">Render</a>
+                                                <a id="unrender" class="unrender dropdown-item" href="#">Unrender</a>
                                             </div>
                                         </div>
                                     </th>
