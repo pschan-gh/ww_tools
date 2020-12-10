@@ -72,7 +72,7 @@ function initializeDB(contents) {
     var schemaBuilder = lf.schema.create(dbName, 1);
 
     var logList = contents.split(/\r?\n/);
-    var answer, utime, metaData, time, sid, hwset, result;
+    var answer, utime, metaData, time, sid, hwset, result, score;
     var prob = 0;
     var finalAnswers = {};
 
@@ -115,6 +115,7 @@ function initializeDB(contents) {
             let processed_ans = answer.replace(/\[submit\] */ig, '');
             if (!processed_ans.match(/no answer entered/ig)) {
                 processed_ans = result;
+                // processed_ans = score;
             }
             
             finalAnswers[sid][hwset][prob] = {
@@ -124,7 +125,8 @@ function initializeDB(contents) {
                 'unixtime': utime,
                 'hwset': hwset,
                 'time': time,
-                'sid': sid
+                'sid': sid,
+                // 'score': score
             }
 
             if (typeof maxQuizLength[hwset] === 'undefined') {
@@ -296,10 +298,20 @@ function queryHWSet(db, table, query, field) {
 
             var cell;
 
+            let score = 0;
+            let result;
             headerNames.map(function(hfield) {
                 var $td = $("<td>", {'field': hfield, "class":'col_' + hfield});
                 if (hfield != 'score' && hfield != 'answer') {
                     $td.text(row[hfield]);
+                    match = hfield.match(/prob(\d+)/);
+                    if (match != null) {
+                        result = row[hfield];
+                        score = result.match(/No answer entered/) ? result : Math.round(100*(result.match(/1/g) || []).length/(result.length))/100; // + '%';
+                        $td.attr('data-score', score);
+                        $td.attr('data-result', result);
+                        $td.addClass('prob');
+                    }
                 } else if (hfield == 'score') {
                     $td.text(Math.round(100*(row['result'].match(/1/g) || []).length/(row['result'].length)) + '%');
                 }
@@ -637,8 +649,6 @@ function loadProblems(db, table, hwset, sortField) {
     $('#export').show();
 }
 
-
-
 $(document).ready(function () {
     document.getElementById('file-input').addEventListener('change', readSingleFile, false);
    $('table').each(function () {
@@ -668,4 +678,12 @@ $(document).ready(function () {
            });
        });
    });
+   
+   $("select.display").change(function() {
+       let mode = $(this).val();
+       $('td.prob').each(function() {
+           $(this).text($(this).attr('data-' + mode));
+       });
+   });
+
 })
