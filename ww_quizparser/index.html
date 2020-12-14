@@ -1,0 +1,222 @@
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous">
+</script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_HTMLorMML-full"></script>
+
+
+<script src="js/table2CSV.js" type='text/javascript'></script>
+
+<script src="js/lovefield.min.js"></script>
+<script src="js/quizparser_score.js" type='text/javascript' />
+
+<script type='text/javascript'>
+MathJax.Hub.Register.StartupHook('AsciiMath Jax Config', function () {
+var AM = MathJax.InputJax.AsciiMath.AM;
+for (var i=0; i< AM.symbols.length; i++) {
+    if (AM.symbols[i].input == '**') {
+    AM.symbols[i] = {input:"**", tag:"msup", output:"^", tex:null, ttype: AM.TOKEN.INFIX};
+    }
+}
+});
+/* Make sure mathjax is confugued for AsciiMath input */
+MathJax.Hub.Config(["input/Tex","input/AsciiMath","input/TeX", "output/HTML-CSS"]);
+</script>
+
+<style>
+
+#check_all {
+    margin-top:5px;
+    float:left;
+}
+
+#render_dropdown {
+float:right;
+}
+
+.triangle {
+    color:#aaa;
+    /* display:none; */
+    float:right;
+}
+strong {
+    color: SteelBlue;
+    /* color:#aaa; */
+}
+thead, tbody tr {
+    display:table;
+    width:100%;
+    table-layout:fixed;/* even columns width , fix width of table too*/
+}
+
+thead {
+    color:#888;
+    width: calc( 100% - 1em )/* scrollbar is average 1em/16px width, remove it from thead width */
+}
+
+.table {
+    margin:auto;
+    position:absolute;
+    top:5px;
+    left:0;
+    right:0;
+    width:100%;
+    height:85%;
+}
+.table td, .table th {
+    font-family: Courier;
+    width:7em;
+    overflow-x:hidden;
+    white-space:nowrap;
+    /* color: #bbb; */
+}
+
+.col_chkbox {
+    width:5em;
+}
+
+.col_count {
+    font-size:small;
+    width:5em;
+}
+
+.col_score {
+    /* font-size:small; */
+    width:6em;
+}
+
+.col_result, .col_sid{
+    width:10em;
+}
+
+.col_time {
+    width:17em;
+}
+
+.col_prob {
+    width:5em;
+}
+
+.answer_cell {
+    display:inline-block;
+    margin:1px;
+    padding: 1px;
+    border: 1px solid #bbb;
+    float:left;
+    clear:left;
+}
+
+.col_answer {
+    overflow-x : auto !important;
+}
+
+a {
+    color:#888;
+}
+</style>
+</head>
+
+<body>
+    <div style="width:100%">
+        <div style="position:absolute;top:40%;width:100%;text-align:center;margin:auto;z-index:999">
+            <center><h1><strong id="hover_msg">No Database Loaded Yet</strong></h1></center>
+        </div>
+        <nav class="navbar navbar-expand-md navbar-light bg-light">
+            <div class="navbar-collapse collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Open answer_log
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="width:20em;">
+                            <input class="form-control-file" type="file" id="file-input"/>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <select class="form-control-sm" id="hwset" name="hwset">
+                                <option value="">Select Assignment Set</option>
+                            </select>
+                        </a>
+                    </li>
+                    <li class="nav-item" style="display:none">
+                        <a class="nav-link" href="#">
+                            <select class="form-control-sm" id="problem_sel" name="problem_sel">
+                                <option value="Select">Select Problem Set</option>
+                            </select>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <select class="form-control-sm display" id="display" name="problem_sel">
+                                <option value="Select">Select Display Option ...</option>
+                                <option value="result">Display Results</option>
+                                <option value="score">Display Scores</option>
+                            </select>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Show / Hide
+                        </a>
+                        <div class="dropdown-menu" id="columns_menu" aria-labelledby="navbarDropdown" onclick=" event.stopPropagation();">
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Query
+                        </a>
+                        <!-- <label for="query">Query: </label> -->
+                        <div style="position:absolute;top:4em;width:100%;text-align:center" div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <input style="font-family:Courier;width:80%;margin:auto" type="text" id="query" name="query">
+                            <input id="submit" type="submit" value="Submit">
+                        </div>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <button id="export" class="btn btn-sm btn-outline-info" style="float:left;margin-right:1em;display:none">Export to CSV</button>
+                        <h5 style="float:left" id="messages"><strong>WeBWorK <span style="font-family:Courier">answer_log</span> Parser</strong></h5>
+                        <span id="details"></span>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <div style="position:relative;height:95%;margin:auto">
+
+            <!-- <pre id="file-content"></pre> -->
+            <!-- <div id='controlPanel' style="display:none">
+            </div> -->
+            <div style="margin-top:5px;display:none" id="instructions">
+                Click on table headers to group and sort.
+            </div>
+            <table id="mainTable" class='table table-bordered table-hover' style="max-width:100%">
+                <thead>
+                    <tr id="header_row">
+                        <th id="th_time" clicked="0" field="time" class="col_time"><a href="#">Time</a><div class='triangle'></div></th>
+                        <th id="th_sid" clicked="0" field="sid" class="col_sid"><a href="#">SID</a><div class='triangle'></div>
+                        </th>
+                        <!-- <th id="th_prob" clicked="0">Problem</th> -->
+                        <th id="th_result" clicked="0" field="result" class="col_result"><a href="#">Result</a><div class='triangle'></div></th>
+                        <th id="th_answer" clicked="0" field="answer" class="col_answer"><a href="#">Answer</a><div class='triangle'></div></th>
+                    </tr>
+                </thead>
+                <tbody style="display:block;height:100%;overflow-x:hidden;overflow-y:scroll">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
