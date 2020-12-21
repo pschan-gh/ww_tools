@@ -45,12 +45,12 @@ function readSingleFile(e) {
     $('#hwset').off();
     $('#problem').off();
     $('#problem_set').off();
-    
+
     $('#controlPanel').hide();
     $('td').css('color', '#eee');
     $('#hover_msg').html('Loading Database...<img style="width:5em" src="Loading_icon.gif"/>');
     $('#hover_msg').show();
-    
+
     var file = e.target.files[0];
     if (!file) {
         return;
@@ -86,18 +86,18 @@ function initializeDB(contents) {
     $('td').css('border-right', '');
     $('td').css('color', '#000');
     $('tbody').html('');
-    
-    
+
+
     var contents = contents.replace(/,/g, '_');
-    
+
     var dbName = 'alDB' + contents.hashCode();
     console.log('DB NAME: ' + dbName);
-    
+
     // var schemaBuilder = lf.schema.create(dbName, 1);
     // schemaBuilder.createTable('LogTable').addColumn('sid', lf.Type.STRING).addColumn('answer', lf.Type.STRING).addColumn('index', lf.Type.INTEGER).addColumn('unixtime', lf.Type.INTEGER).addColumn('time', lf.Type.STRING).addColumn('hwset', lf.Type.STRING).addColumn('prob', lf.Type.INTEGER).addColumn('result', lf.Type.STRING).
     // addPrimaryKey(['index']).
     // addIndex('idxSID', ['sid'], false, lf.Order.DESC);
-    
+
     config = {
         locateFile: filename => `js/${filename}`
     }
@@ -105,13 +105,13 @@ function initializeDB(contents) {
         var db = new SQL.Database();
         let meta;
         let logTable = 'LogTable';
-        
+
         // db.run("CREATE TABLE DataTable (" + colQuery + ");");
         db.run("CREATE TABLE LogTable (`sid` char, `answer` blob, `index` int PRIMARY KEY, `unixtime` int, `time` char, `hwset` char, `prob` int, `result` char, `score` char);");
-        
+
         // let results = db.exec("SELECT * FROM LogTable ");
         logList = contents.split(/\r?\n/);
-                
+
         logList.forEach(entry => {
             var match = entryRegexp.exec(entry);
             if (typeof(match) !== 'undefined' && match !== null)  {
@@ -125,38 +125,38 @@ function initializeDB(contents) {
                     $(o).html(hwset);
                     $(o).val(hwset);
                     $("#hwset").append(o);
-                }                     
+                }
             }
         });
-                            
+
         $('#messages').html('<strong>Database Loaded.</strong>');
         $('#hover_msg').hide();
-                
-        
+
+
         $('#hwset').on('change', function() {
-            setTimeout(function() { 
-                $('.progress').show();
-                progress = 0;
-                $('.progress-bar').attr('valuenow', '0');
-                $('.progress-bar').css('width', '0' + '%');
-            }, 0);
+            // setTimeout(function() {
+            //     $('.progress').show();
+            //     progress = 0;
+            //     $('.progress-bar').attr('valuenow', '0');
+            //     $('.progress-bar').css('width', '0' + '%');
+            // }, 0);
             // baseQuery = "select(table.time, table.sid, table.result, table.answer).from(table).where(table.hwset.eq('" + $(this).val() +"'))";
             let hwset = $(this).val();
-            setTimeout(function() { 
+            setTimeout(function() {
                 loadData(db, 'LogTable', logList, 'hwset', hwset, function(database) { updateProblems(database, logTable, $('#hwset').val()); eventListeners(database, logTable);});
             }, 0);
         });
-                // updateProblems(db, logTable, $('#hwset').val());        
-        
-                
+                // updateProblems(db, logTable, $('#hwset').val());
+
+
         $('#controlPanel').css('display', 'inline-block');
         // updateProblems(db, logTable, $('#hwset').val());
     });
-    
+
 }
 
 function eventListeners(database, logTable) {
-    $('#problem_sel').off();    
+    $('#problem_sel').off();
     $('#problem_sel').on('change', function() {
         let problem = $(this).val();
         // baseQuery = "select(table.time, table.unixtime, table.sid, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() +"'), table.prob.eq('" + problem + "')))";
@@ -165,13 +165,13 @@ function eventListeners(database, logTable) {
         clickedArray['time'] = -1;
         queryHWSet(database, logTable, baseQuery, 'time');
         $('#export').show();
-        
+
     });
     $('#submit').off();
     $('#submit').on('click', function() {
         baseQuery = $('#query').val();
         queryHWSet(database, logTable, baseQuery, 'unixtime');
-    });    
+    });
 }
 const chunkSize = 5000;
 // var progress = 0;
@@ -213,27 +213,27 @@ const chunkSize = 5000;
 //                 'result': "'" + result + "'",
 //                 'score': "'" + Math.round(100*(result.match(/1/g) || []).length/(result.length)) + '%' + "'"
 //             };
-// 
+//
 //             if (row[field] != "'" + value + "'") {
 //                 continue;
-//             }  
-// 
-//             // console.log(row);            
-// 
-//             datum = []; 
+//             }
+//
+//             // console.log(row);
+//
+//             datum = [];
 //             wwFields.forEach(field => {
 //                 datum.push(row[field]);
 //             });
-//             queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";            
+//             queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
 //         }
-// 
+//
 //     }
 //     let dbChain = database;
-// 
+//
 //     // setTimeout(function() {
-//     //     if (queryINSERT != '' ) {        
+//     //     if (queryINSERT != '' ) {
 //     //         // console.log(queryINSERT);
-//     //         dbChain = database.run(queryINSERT);                
+//     //         dbChain = database.run(queryINSERT);
 //     //     }
 //     //     updateDB(dbChain, logTable, loglist.slice(chunkSize), field, value, total, callback);
 //     //     // console.log(total);
@@ -241,10 +241,10 @@ const chunkSize = 5000;
 //     //     // console.log(progress);
 //     //     $('.progress-bar').attr('valuenow', progress);
 //     //     $('.progress-bar').css('width', progress + '%');
-//     // }, 0);   
-//     if (queryINSERT != '' ) {        
+//     // }, 0);
+//     if (queryINSERT != '' ) {
 //         // console.log(queryINSERT);
-//         dbChain = database.run(queryINSERT);                
+//         dbChain = database.run(queryINSERT);
 //     }
 //     updateDB(dbChain, logTable, loglist.slice(chunkSize), field, value, total, callback);
 //     // console.log(total);
@@ -263,12 +263,12 @@ function loadData(db, table, loglist, field, value, callback = function() {retur
     let queryINSERT = '';
     let datum = [];
     let progress;
-    
-    
+
+
     console.log(loglist.length);
     // updateDB(db, table, loglist, field, value, loglist.length, callback);
     for (var i = 0; i < loglist.length - 1; i++) {
-        
+
         var match = entryRegexp.exec(logList[i]);
         if (typeof(match) !== 'undefined' && match !== null)  {
             answer = match[3].replace(dqRegex, "").replace(/\t/g, ';').replace(/[^a-z0-9\s\;\+\-\_\^\(\)\[\]\*\/\\]/ig, ''); //.replace(/inf/g, '\\infty');
@@ -293,31 +293,31 @@ function loadData(db, table, loglist, field, value, callback = function() {retur
                 'result': "'" + result + "'",
                 'score': "'" + Math.round(100*(result.match(/1/g) || []).length/(result.length)) + '%' + "'"
             };
-        
+
             if (row[field] != "'" + value + "'") {
                 continue;
-            }  
-        
+            }
+
             // console.log(row);
             if (i % chunkSize == 0) {
                 if (queryINSERT != '' ) {
                     // console.log('INSERT');
-                    // console.log(queryINSERT);  
-                    setTimeout(function() {                                            
-                        progress = 100*i/loglist.length;
-                        $('.progress-bar').attr('valuenow', progress);
-                        $('.progress-bar').css('width', progress + '%');
-                    }, 0); 
+                    // console.log(queryINSERT);
+                    // setTimeout(function() {
+                    //     progress = 100*i/loglist.length;
+                    //     $('.progress-bar').attr('valuenow', progress);
+                    //     $('.progress-bar').css('width', progress + '%');
+                    // }, 0);
                     db.run(queryINSERT);
                 }
                 queryINSERT = '';
             }
-        
-            datum = []; 
+
+            datum = [];
             wwFields.forEach(field => {
                 datum.push(row[field]);
             });
-            queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";            
+            queryINSERT += "INSERT OR REPLACE INTO " + logTable + " (" + dbFields.join(",") + ") VALUES (" + datum.join(",") + ");";
         }
     }
     if (queryINSERT != '') {
@@ -357,12 +357,12 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
 	console.log('FIELD: ' + field);
 
 	console.log('QUERY: ' + query);
-	
+
     document.getElementById(target).getElementsByTagName('tbody')[0].innerHTML = '';
     let results = db.exec(query);
-    
+
     console.log(results);
-    
+
     if (!results.length) {
         return;
     }
@@ -373,7 +373,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         row = {};
         results[0].columns.forEach((entry, index) => {
             row[entry] = result[index];
-        });     
+        });
         // row = {
         //     'time' : result[0],
         //     'unixtime' : result[1],
@@ -381,8 +381,8 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         //     'result' : result[3],
         //     'answer' : result[4]
         // }
-        
-        if (count < 1) {            
+
+        if (count < 1) {
             headerNames = [];
             $('#' + target + ' th[field!="chkbox"][field!="count"]').remove();
             for(var key in row) {
@@ -413,19 +413,19 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             });
             updateButtons(db, logTable);
         }
-        
+
         var tableRow = document.getElementById(target).getElementsByTagName('tbody')[0].insertRow(-1);
         var cell;
-        
+
         cell = tableRow.insertCell(0);
         $(cell).addClass('col_chkbox');
         $(cell).attr('field', 'chkbox');
         $(cell).html('<input type="checkbox" class="chkbox">');
-        
+
         cell = tableRow.insertCell(1);
         $(cell).addClass('col_count');
         $(cell).attr('field', 'count');
-        
+
         if ((prev_row == null) || (prev_row[field] != row[field])) {
             // console.log('NEW GROUP ' + row[field]);
             $('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
@@ -441,20 +441,20 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             $(tableRow).hide();
         }
         prev_row = row;
-        
+
         $(tableRow).attr('clicked', 0);
         $('#' + target + " .col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">-</strong>');
         $('#' + target + " td.root[index='" + index + "']").html(count);
-        
+
         $(tableRow).attr('index', index);
         $(tableRow).attr('unixtime', row['unixtime']);
-        
+
         $(cell).attr('index', index);
         $(cell).attr('clicked', 0);
         cell.textContent = count ;
-        
+
         var cell;
-        
+
         headerNames.map(function(hfield) {
             var $td = $("<td>", {'field': hfield, "class":'col_' + hfield});
             // if (hfield != 'score' && hfield != 'answer') {
@@ -480,28 +480,28 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             }
             $td.appendTo($(tableRow));
         });
-        
+
     }
-    
+
     $('#messages').html('<strong>Query Completed</strong>');
     $('#hover_msg').hide();
-    
+
     $('#' + target + ' td.root').each(function() {
         var count = $(this).html();
         if (count > 1) {
             $(this).html(count + "<strong style='color:SteelBlue;float:right'>+</strong>");
         }
     });
-    
-    
+
+
     var colClass = 'col_' + field;
-    
+
     $('.col_unixtime').hide();
-    
+
     console.log('COLCLASS: ' + colClass);
     $('#' + target + ' td.' + colClass).css('border-left', '2px solid SteelBlue');
     $('#' + target + ' td.' + colClass).css('border-right', '2px solid SteelBlue');
-    
+
     $('#' + target + ' td.col_answer').on('click', function() {
         $ans = $(this).find('.answer_cell');
         // console.log(ans);
@@ -518,7 +518,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             }
         });
     });
-    
+
     if (field != 'unixtime') {
         $('#' + target + ' td').css('color', '#ccc');
         $('#' + target + ' td.' + colClass).css('color', '#000');
@@ -526,14 +526,14 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
     } else {
         $('#' + target + ' td').css('color', '#000');
     }
-    
+
     $('#' + target + ' td.col_count').on('click', function() {
         // var bgcolor = $("tr[index='" + $(this).attr('index') + "']").first().css('background-color');
         var index = $(this).closest('tr').attr('index');
         var clicked = 1 - parseInt($(this).closest('tr').find('td.col_count').attr('clicked'));
         $('#' + target + " .col_count[index='" + index + "']").attr('clicked', clicked);
         $('#' + target + " .col_count[index='" + index + "']").closest('tr').attr('clicked', clicked);
-        
+
         $('#' + target + " td").css('color', '');
         $('#' + target + " td." + colClass).css('color', '#000');
         $('#' + target + " td.col_count").css('color', '#000');
@@ -542,13 +542,13 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         highlightHue = (highlightHue + 75) % 360;
         $('#' + target + " tbody tr[clicked!=1][field!='count']").css('color', '');
         $('#' + target + " tbody tr[clicked!=1] td").css('background-color', '');
-        
+
         $('#' + target + " tbody tr[clicked=1]").show();
         $('#' + target + " tbody tr[clicked=1] td.col_chkbox input[type='checkbox']").prop('checked', true);
         $('#' + target + " tbody tr[clicked!=1]").hide();
         $('#' + target + " tbody tr[clicked!=1] td.col_chkbox input[type='checkbox']").prop('checked', false);
         $('#' + target + " tbody tr.root").show();
-        
+
         $('#' + target + " td.col_count[clicked=1]").each(function() {
             $(this).html($(this).html().replace(/\+/, '-'));
         });
@@ -556,9 +556,9 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             $(this).html($(this).html().replace(/\-/, '+'));
         });
     });
-    
+
     $('#' + target + " td[field='sid']").on('click', function() {
-        loadData(db, 'LogTable', logList, 'sid', $(this).text()); 
+        loadData(db, 'LogTable', logList, 'sid', $(this).text());
         // baseQuery = "select(table.time, table.unixtime, table.sid, table.prob, table.result, table.answer).from(table).where(lf.op.and(table.hwset.eq('" + $('#hwset').val() + "'), table.sid.eq('" + $(this).text() + "')))";
         baseQuery = "SELECT `time`, `unixtime`, `prob`, `result`, `answer` FROM " + logTable + " WHERE `sid` = '" + $(this).text() + "' ORDER BY `prob` ASC, `unixtime` DESC";
         $('#problem_sel').val('Select ...');
@@ -571,15 +571,15 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
         updateButtons();
         $('#student_modal').modal('show');
     });
-    
+
     $('#' + target + ' .expand_all').click(function() {
         $('#' + target + ' tr.branch').show();
     });
     $('#' + target + ' .collapse_all').on('click', function() {
         $('#' + target + ' tr.branch').hide();
     });
-    
-    
+
+
     // http://jsfiddle.net/jakecigar/QB9RT/
     checkBoxes = $('.chkbox');
     $('#' + target + ' .chkbox').off();
@@ -597,7 +597,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             lastSelected = this;
         }
     });
-    
+
     $('#' + target + ' .chkbox,' + '#' + target + ' .check_all').on('change', function () {
         $('#' + target + ' .chkbox').each(function() {
             if ($(this).prop('checked')) {
@@ -607,7 +607,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             }
         });
     });
-    
+
     $('#' + target + ' .render').click(function() {
         console.log('RENDER');
         var ans;
@@ -623,7 +623,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             });
         });
     });
-    
+
     $('#' + target + ' .unrender').click(function() {
         console.log('UNRENDER');
         var $answers;
@@ -637,7 +637,7 @@ function queryHWSet(db, table, query, field, target = 'mainTable') {
             });
         });
     });
-    
+
     $('#' + target).show();
 }
 
@@ -827,4 +827,3 @@ $(document).ready(function () {
 		});
 	});
 });
-
