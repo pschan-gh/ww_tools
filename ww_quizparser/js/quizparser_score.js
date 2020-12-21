@@ -99,7 +99,7 @@ function initializeDB(contents) {
                 $("#hwset").append(o);
             }
 
-            if (!answer.match(/submit/ig)) {
+            if (!answer.match(/submit/ig) || answer.match(/no answer entered/ig)) {
                 continue;
             }
 
@@ -117,7 +117,7 @@ function initializeDB(contents) {
                 processed_ans = result;
                 // processed_ans = score;
             }
-            
+
             finalAnswers[sid][hwset][prob] = {
                 'prob': prob,
                 'answer': processed_ans,
@@ -308,6 +308,7 @@ function queryHWSet(db, table, query, field) {
                     if (match != null) {
                         result = row[hfield];
                         score = result.match(/No answer entered/) ? result : Math.round(100*(result.match(/1/g) || []).length/(result.length))/100; // + '%';
+                        score  = isNaN(score) ? 0 : score;
                         $td.attr('data-score', score);
                         $td.attr('data-result', result);
                         $td.addClass('prob');
@@ -678,7 +679,7 @@ $(document).ready(function () {
            });
        });
    });
-   
+
    $("select.display").change(function() {
        let mode = $(this).val();
        $('td.prob').each(function() {
