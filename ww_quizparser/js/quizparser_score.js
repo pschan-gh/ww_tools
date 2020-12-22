@@ -118,15 +118,17 @@ function initializeDB(contents) {
                 // processed_ans = score;
             }
 
-            finalAnswers[sid][hwset][prob] = {
-                'prob': prob,
-                'answer': processed_ans,
-                'result': result,
-                'unixtime': utime,
-                'hwset': hwset,
-                'time': time,
-                'sid': sid,
-                // 'score': score
+            if (typeof finalAnswers[sid][hwset][prob] === 'undefined' || finalAnswers[sid][hwset][prob]['unixtime'] < utime) {
+                finalAnswers[sid][hwset][prob] = {
+                    'prob': prob,
+                    'answer': processed_ans,
+                    'result': result,
+                    'unixtime': utime,
+                    'hwset': hwset,
+                    'time': time,
+                    'sid': sid,
+                    // 'score': score
+                }
             }
 
             if (typeof maxQuizLength[hwset] === 'undefined') {
