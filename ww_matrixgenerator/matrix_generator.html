@@ -55,7 +55,7 @@
 
 </head>
 
-<body style="width:90%;margin:auto;font-family:sans-serif">
+<body style="width:90%;margin:10 auto;font-family:sans-serif">
     <h1>WeBWorK-Compatible Matrix Generator</h1>
     Use arrow keys on your keyword to expand columns/rows and to navigate within the matrix.
     <hr/>
@@ -66,8 +66,8 @@
             </tr>
         </table>
         <hr/>
-        row: <span id='row_info'></span>
-        col: <span id='col_info'></span>
+        rows: <span id='row_info'>1</span>
+        cols: <span id='col_info'>1</span>
     </div>
     <hr/>
     <div id="report" style="margin: 50px 50px">
@@ -93,11 +93,17 @@
     <script>
       var me = new matrixEditor($('#container')[0], $('#report')[0],  $('#matrix')[0]);
       me.updateMatrix();
-      $('#row_info').text(me.curr.row);
-      $('#col_info').text(me.curr.col);
+      // $('#row_info').text(me.curr.row);
+      // $('#col_info').text(me.curr.col);
       $('.matrix-field tr:eq(' + me.curr.row + ') td:eq(' + me.curr.col + ')').attr('contenteditable', 'true')[0].focus();
       $('.matrix-field').keydown(function(e) {
-	  me.checkKey(e);
+          me.checkKey(e);
+          if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
+              let max_col = $('#matrix_table').find('tr').first().find('td').length;
+              let max_row = $('#matrix_table').find('tr').length;
+              $('#row_info').text(max_row);
+              $('#col_info').text(max_col);
+          }
 	});
 
     function selectText(input) {
