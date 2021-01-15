@@ -45,11 +45,6 @@ function matrixEditor(popupdiv, report, input) {
         $(this.table).find('td').click(function() {
             $(this)[0].focus();
             $(this).attr('contenteditable', 'true');
-            // curr.row = $(this).closest('tr').index();
-            // curr.col = $(this).index();
-            // $('#row_info').text(curr.row);
-            // $('#col_info').text(curr.col);
-            // me.cleanUp();
             curr.row = $(table).find('tr td:focus').closest('tr').index();
             curr.col = $(table).find('tr td:focus').index();
             console.log(curr);
@@ -258,7 +253,7 @@ function matrixEditor(popupdiv, report, input) {
             curr.row = $(table).find('tr td:focus').closest('tr').index();
             curr.col = $(table).find('tr td:focus').index();
             console.log(curr);
-            me.cleanUp();            
+            // me.cleanUp();            
         });
         
         // https://jsfiddle.net/Mottie/8w5x7e1s/
