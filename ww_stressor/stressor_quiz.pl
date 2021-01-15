@@ -16,6 +16,8 @@
 
 require 5.000;
 
+use Time::HiRes qw(sleep usleep nanosleep);
+
 $0 =~ s|.*/||;
 if (@ARGV != 5)  {
 	print "\n usage: ./$0 <course_url> <webwork_classlist> <quiz> <length> <num_users>\nwhere <quiz> is an the name of an existing quiz on the course, <length> is the number of problems on the quiz, and <num_users> is any nonnegative number less than or equal to the number of students assigned to the quiz. Each test user is assumed to have their Student_ID as their password.\nn
@@ -64,14 +66,14 @@ foreach (@rosterArray) {
   my $choice;
   for (my $i = 1; $i <= $length; $i++) {
 	  my $padded = sprintf("%04d", $i);
-	  
+
 	  # https://www.perlmonks.org/?node_id=357284
 	  $choice = $choices[rand @choices];
 	  $answers .= "Q$padded"."_AnSwEr0001=$choice&";
   }
 
-  my @args = "curl --data \"submitAnswers=1&displayMode=MathJax&user=$student_id&effectiveUser=$user_id&passwd=$student_id&$answers\" $course_url/quiz_mode/$quiz,v1/ &\n";
-  sleep 0.5; #wait half a second between each submission, can be adjusted (to 0 for example).
+  my @args = "curl --data \"submitAnswers=1&displayMode=MathJax&user=$student_id&effectiveUser=$user_id&passwd=$password&$answers\" $course_url/quiz_mode/$quiz,v1/ &\n";
+  sleep(0.5); #wait half a second between each submission, can be adjusted (to 0 for example).
   print @args, "\n<br/>";
   system(@args);
 

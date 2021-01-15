@@ -17,6 +17,8 @@
 
 require 5.000;
 
+use Time::HiRes qw(sleep usleep nanosleep);
+
 $0 =~ s|.*/||;
 if (@ARGV != 4)  {
 	print "\n usage: ./$0 <course_url> <webwork_classlist> <quiz> <num_users>\nwhere <quiz> is an the name of an existing quiz on the course, and <num_users> is any nonnegative number less than or equal to the number of students assigned to the quiz. Each test user is assumed to have their Student_ID as their password.\nn
@@ -49,7 +51,7 @@ foreach (@rosterArray) {
     print Dump @regArray;
 
     foreach (@regArray) {		## clean 'em up!
-	($_) = m/^\s*(.*?)\s*$/;        ## (remove leading and trailing spaces)
+        ($_) = m/^\s*(.*?)\s*$/;        ## (remove leading and trailing spaces)
     }
 
   ## extract the relevant fields
@@ -58,9 +60,10 @@ foreach (@rosterArray) {
 
   $student_id =~ s/"//g;
 
-  print "Executing ", $index, " ",  $student_id, "\n";
+  sleep(0.5); # sleep half a second
+  print "Executing ", $index, " ",  $student_id, $password, "\n";
 
-  my @args = "curl --data \"user=$user_id&passwd=$student_id\" $course_url/quiz_mode/$quiz/ &\n";
+  my @args = "curl --data \"user=$user_id&passwd=$password\" $course_url/quiz_mode/$quiz/ &\n";
   print @args, "\n<br/>";
   system(@args);
 
