@@ -36,16 +36,18 @@ function matrixEditor(popupdiv, report, input) {
             $(this.table).find('td').css('border', '1px solid #ddd');
             this.updateMatrix();
 
+            var me = this;
+
             $(this.table).find('td').click(function() {
                 $(this)[0].focus();
                 $(this).attr('contenteditable', 'true');
-                this.curr.row = $(this).closest('tr').index();
-                this.curr.col = $(this).index();
+                me.curr.row = $(this).closest('tr').index();
+                me.curr.col = $(this).index();
                 // $('#row_info').text(this.curr.row);
                 // $('#col_info').text(this.curr.col);
-                this.cleanUp();
-                this.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
-                this.curr.col = $(this.table).find('tr td:focus').index();
+                me.cleanUp();
+                me.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
+                me.curr.col = $(this.table).find('tr td:focus').index();
             });
         }
 
@@ -237,16 +239,16 @@ function matrixEditor(popupdiv, report, input) {
 
             var key = e.key;
 
+            var me = this;
+
             $(this.table).find('tr td').click(function() {
                 $(this)[0].focus();
                 $(this).attr('contenteditable', 'true');
-                this.curr.row = $(this).closest('tr').index();
-                this.curr.col = $(this).index();
-                // $('#row_info').text(this.curr.row);
-                // $('#col_info').text(this.curr.col);
-                this.cleanUp();
-                this.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
-                this.curr.col = $(this.table).find('tr td:focus').index();
+                me.curr.row = $(this).closest('tr').index();
+                me.curr.col = $(this).index();
+                me.cleanUp();
+                me.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
+                me.curr.col = $(this.table).find('tr td:focus').index();
             });
 
             // https://jsfiddle.net/Mottie/8w5x7e1s/
@@ -268,7 +270,7 @@ function matrixEditor(popupdiv, report, input) {
                 }
             });
 
-            this.updateMatrix();
+            // this.updateMatrix();
         }
 
         this.updateMatrix = function() {
