@@ -7,10 +7,12 @@ function selectElementContents(el) {
     sel.addRange(range);
 }
 
+var curr = {row: 0, col: 0};
+
 function matrixEditor(popupdiv, report, input) {
 
     this.input = input;
-    this.curr = {row: 0, col: 0};
+    curr = {row: 0, col: 0};
     this.popupdiv = popupdiv;
 
     this.table = $(popupdiv).find('table').first()[0];
@@ -31,23 +33,25 @@ function matrixEditor(popupdiv, report, input) {
             console.log(html);
             $(this.table).append(html);
             $(this.table).find('td').attr('contenteditable', 'true');
-            this.curr.row = 0;
-            this.curr.col = 0;
+            curr.row = 0;
+            curr.col = 0;
             $(this.table).find('td').css('border', '1px solid #ddd');
             this.updateMatrix();
 
             var me = this;
-
+            var table = this.table;
+            
+            $(this.table).find('tr td').off();
             $(this.table).find('td').click(function() {
                 $(this)[0].focus();
                 $(this).attr('contenteditable', 'true');
-                me.curr.row = $(this).closest('tr').index();
-                me.curr.col = $(this).index();
-                // $('#row_info').text(this.curr.row);
-                // $('#col_info').text(this.curr.col);
+                curr.row = $(this).closest('tr').index();
+                curr.col = $(this).index();
+                // $('#row_info').text(curr.row);
+                // $('#col_info').text(curr.col);
                 me.cleanUp();
-                me.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
-                me.curr.col = $(this.table).find('tr td:focus').index();
+                curr.row = $(table).find('tr td:focus').closest('tr').index();
+                curr.col = $(table).find('tr td:focus').index();
             });
         }
 
@@ -58,10 +62,10 @@ function matrixEditor(popupdiv, report, input) {
             }
             if(dir == 1) {
                 $(this.table).append('<tr>' + html + '</tr>');
-                this.curr.row = $(this.table).find('tr').length - 1;
+                curr.row = $(this.table).find('tr').length - 1;
             } else {
                 $(this.table).prepend('<tr>' + html + '</tr>');
-                this.curr.row = 0;
+                curr.row = 0;
             }
         }
 
@@ -70,25 +74,25 @@ function matrixEditor(popupdiv, report, input) {
                 $(this.table).find('tr').each(function() {
                     $(this).append('<td></td>');
                 });
-                this.curr.col = $(this.table).find('tr').first().find('td').length - 1;
+                curr.col = $(this.table).find('tr').first().find('td').length - 1;
             } else {
                 $(this.table).find('tr').each(function() {
                     $(this).prepend('<td></td>');
                 });
-                this.curr.col = 0;
+                curr.col = 0;
             }
         }
 
         this.cleanUp = function() {
             var max_col = $(this.table).find('tr').first().find('td').length;
             var max_row = $(this.table).find('tr').length;
-            if (this.curr.row != 0 && this.emptyRow(0) && max_row > 1) {
+            if (curr.row != 0 && this.emptyRow(0) && max_row > 1) {
                 $(this.table).find('tr').first().remove();
             }
 
             max_col = $(this.table).find('tr').first().find('td').length;
             max_row = $(this.table).find('tr').length;
-            if (this.curr.col != 0 && this.emptyCol(0) && max_col > 1) {
+            if (curr.col != 0 && this.emptyCol(0) && max_col > 1) {
                 $(this.table).find('tr').each(function(){
                     $(this).find('td').first().remove();
                 });
@@ -96,13 +100,13 @@ function matrixEditor(popupdiv, report, input) {
 
             max_col = $(this.table).find('tr').first().find('td').length;
             max_row = $(this.table).find('tr').length;
-            if (this.curr.row != max_row - 1 && this.emptyRow(max_row - 1) && max_row > 1) {
+            if (curr.row != max_row - 1 && this.emptyRow(max_row - 1) && max_row > 1) {
                 $('.matrix-field tr').last().remove();
             }
 
             max_col = $(this.table).find('tr').first().find('td').length;
             max_row = $(this.table).find('tr').length;
-            if (this.curr.col != max_col - 1 && this.emptyCol(max_col - 1) && max_col > 1) {
+            if (curr.col != max_col - 1 && this.emptyCol(max_col - 1) && max_col > 1) {
                 $(this.table).find('tr').each(function(){
                     $(this).find('td').last().remove();
                 });
@@ -113,54 +117,56 @@ function matrixEditor(popupdiv, report, input) {
         this.move = function(row_offset, col_offset) {
             var max_col = $(this.table).find('tr').first().find('td').length;
             var max_row = $(this.table).find('tr').length;
-            // $('#row_info').text(max_row);
-            // $('#col_info').text(max_col);
-
+            
             if (row_offset == 1) {
-                if (this.curr.row == max_row - 1) {
+                if (curr.row == max_row - 1) {
                     this.addRow(1);
                 } else {
-                    this.curr.row++;
+                    curr.row++;
                 };
             }
             if (col_offset == 1) {
-                if (this.curr.col == max_col - 1) {
+                if (curr.col == max_col - 1) {
                     this.addCol(1);
                 } else {
-                    this.curr.col++;
+                    curr.col++;
                 };
             }
 
             if (row_offset == -1) {
-                if (this.curr.row > 0) {
-                    this.curr.row--;
+                if (curr.row > 0) {
+                    curr.row--;
                 } else {
-                    this.curr.row = 0;
+                    curr.row = 0;
                     this.addRow(-1);
                 }
             }
 
             if (col_offset == -1) {
-                if(this.curr.col > 0) {
-                    this.curr.col--;
+                if(curr.col > 0) {
+                    curr.col--;
                 } else {
-                    this.curr.col = 0;
+                    curr.col = 0;
                     this.addCol(-1);
                 }
             }
 
-            // $('#row_info').text(this.curr.row);
-            // $('#col_info').text(this.curr.col);
+            // $('#row_info').text(curr.row);
+            // $('#col_info').text(curr.col);
 
             $('td').attr('contenteditable', 'true');
-            var el = $(this.table).find('tr').eq(this.curr.row).find('td').eq(this.curr.col)[0];
+            var el = $(this.table).find('tr').eq(curr.row).find('td').eq(curr.col)[0];
             el.focus();
             selectElementContents(el);
             this.cleanUp();
-            this.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
-            this.curr.col = $(this.table).find('tr td:focus').index();
-            // let max_col = $('#matrix_table').find('tr').first().find('td').length;
-            // let max_row = $('#matrix_table').find('tr').length;
+            curr.row = $(this.table).find('tr td:focus').closest('tr').index();
+            curr.col = $(this.table).find('tr td:focus').index();
+            
+            max_col = $('#matrix_table').find('tr').first().find('td').length;
+            max_row = $('#matrix_table').find('tr').length;
+            
+            $('#row_info').text(max_row);
+            $('#col_info').text(max_col);
         }
 
 
@@ -193,9 +199,9 @@ function matrixEditor(popupdiv, report, input) {
             // e = e || window.event;
 
 
-            console.log(this.curr);
+            console.log(curr);
             console.log(this.table);
-            var td = $(this.table).find('tr').eq(this.curr.row).find('td').eq(this.curr.col)[0];
+            var td = $(this.table).find('tr').eq(curr.row).find('td').eq(curr.col)[0];
 
             // https://stackoverflow.com/questions/7451468/contenteditable-div-how-can-i-determine-if-the-cursor-is-at-the-start-or-end-o/7478420#7478420
             // Get the current cusor position
@@ -240,18 +246,21 @@ function matrixEditor(popupdiv, report, input) {
             var key = e.key;
 
             var me = this;
-
-            $(this.table).find('tr td').click(function() {
+            var table = this.table;
+            
+            $(this.table).find('td').off();
+            $(this.table).find('td').click(function() {
                 $(this)[0].focus();
                 $(this).attr('contenteditable', 'true');
-                me.curr.row = $(this).closest('tr').index();
-                me.curr.col = $(this).index();
+                // curr.row = $(this).closest('tr').index();
+                // curr.col = $(this).index();
                 me.cleanUp();
-                me.curr.row = $(this.table).find('tr td:focus').closest('tr').index();
-                me.curr.col = $(this.table).find('tr td:focus').index();
+                curr.row = $(table).find('tr td:focus').closest('tr').index();
+                curr.col = $(table).find('tr td:focus').index();
             });
 
             // https://jsfiddle.net/Mottie/8w5x7e1s/
+            (this.table).find('td').off();
             $(this.table).find('td').on('focus', function() {
                 var cell = this;
                 // select all text in contenteditable

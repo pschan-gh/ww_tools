@@ -109,16 +109,10 @@
       me.updateMatrix();
       // $('#row_info').text(me.curr.row);
       // $('#col_info').text(me.curr.col);
-      $('.matrix-field tr:eq(' + me.curr.row + ') td:eq(' + me.curr.col + ')').attr('contenteditable', 'true')[0].focus();
+      $('.matrix-field tr:eq(' + curr.row + ') td:eq(' + curr.col + ')').attr('contenteditable', 'true')[0].focus();
       $('.matrix-field').keydown(function(e) {
           $('.report').addClass('hidden');
-          me.checkKey(e);
-          if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
-              let max_col = $('#matrix_table').find('tr').first().find('td').length;
-              let max_row = $('#matrix_table').find('tr').length;
-              $('#row_info').text(max_row);
-              $('#col_info').text(max_col);
-          }          
+          me.checkKey(e);    
 	});
     
     $('.generate.btn').click(function() {
