@@ -260,7 +260,7 @@ function matrixEditor(popupdiv, report, input) {
             });
 
             // https://jsfiddle.net/Mottie/8w5x7e1s/
-            (this.table).find('td').off();
+            $(this.table).find('td').off();
             $(this.table).find('td').on('focus', function() {
                 var cell = this;
                 // select all text in contenteditable
