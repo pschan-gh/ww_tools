@@ -49,7 +49,7 @@ function matrixEditor(popupdiv, report, input) {
             // curr.col = $(this).index();
             // $('#row_info').text(curr.row);
             // $('#col_info').text(curr.col);
-            me.cleanUp();
+            // me.cleanUp();
             curr.row = $(table).find('tr td:focus').closest('tr').index();
             curr.col = $(table).find('tr td:focus').index();
             console.log(curr);
