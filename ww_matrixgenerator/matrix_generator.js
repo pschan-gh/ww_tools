@@ -201,7 +201,7 @@ function matrixEditor(popupdiv, report, input) {
         
         
         console.log(curr);
-        console.log(this.table);
+        // console.log(this.table);
         var td = $(this.table).find('tr').eq(curr.row).find('td').eq(curr.col)[0];
         
         // https://stackoverflow.com/questions/7451468/contenteditable-div-how-can-i-determine-if-the-cursor-is-at-the-start-or-end-o/7478420#7478420
