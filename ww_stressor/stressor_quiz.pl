@@ -73,7 +73,11 @@ foreach (@rosterArray) {
   }
 
   my @args = "curl --data \"submitAnswers=1&displayMode=MathJax&user=$student_id&effectiveUser=$user_id&passwd=$password&$answers\" $course_url/quiz_mode/$quiz,v1/ &\n";
-  sleep(0.5); #wait half a second between each submission, can be adjusted (to 0 for example).
+
+  my $pause = 0.1 + rand(0.5);
+  print "\nPausing for $pause seconds.\n";
+  sleep($pause);
+
   print @args, "\n<br/>";
   system(@args);
 

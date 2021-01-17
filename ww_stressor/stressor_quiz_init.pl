@@ -60,7 +60,10 @@ foreach (@rosterArray) {
 
   $student_id =~ s/"//g;
 
-  sleep(0.5); # sleep half a second
+  my $pause = 0.1 + rand(0.5);
+  print "\nPausing for $pause seconds.\n";
+  sleep($pause);
+
   print "Executing ", $index, " ",  $student_id, $password, "\n";
 
   my @args = "curl --data \"user=$user_id&passwd=$password\" $course_url/quiz_mode/$quiz/ &\n";
