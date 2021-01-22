@@ -1304,7 +1304,7 @@ $(function () {
 
      $('select.re').change(function() {
          if (!$(this).val().match(/Select/)) {
-             $(this).closest('div.row').find('input[type="text"]').val($(this).val());
+             $(this).closest('div.row').find('input[type="text"]').val('^' + $(this).val() + '$');
          }
      });
 
