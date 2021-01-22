@@ -53,7 +53,7 @@ function initializeDB(data, headers, key) {
     var row;
     var rows = [];
     // var logTable = db.getSchema().table('LogTable' + tableVersion);
-    
+
     postInitialization(null, mainArray);
     updateTable(null, mainArray, data, headers, primaryKey, true);
 
@@ -160,7 +160,7 @@ function updateRows(data, db, table, secondaryDbKey) {
         let sanitizedField;
         let dataRow = data[0];
         console.log(dataRow);
-        
+
         let re = {};
         re['student_id'] = new RegExp($('#idRe').val(), 'i');
         re['fullname'] = new RegExp($('#fullnameRe').val(), 'i');
@@ -180,7 +180,7 @@ function updateRows(data, db, table, secondaryDbKey) {
             }
         }
 
-        
+
         console.log(fieldMask);
 
         for (let i = 0; i < data.length; i++) {
@@ -285,7 +285,7 @@ function updateRows(data, db, table, secondaryDbKey) {
                                 if (value != null && typeof value != typeof undefined) {
                                     table[i][dbField] = value;
                                 }
-                                
+
                                 // db.update(table).
                                 // set(table[dbField], value).
                                 // where(table[primaryDbKey].eq(rowObj[secondaryDbKey])).
@@ -358,14 +358,14 @@ function recalculateColumns(db, table, columns) {
     let queryFunc = new Function('db', 'table',  functionStr);
     let sanitizedField;
     let dbField;
-    
-    table.forEach(function(rowObj) {  
+
+    table.forEach(function(rowObj) {
         columns.forEach(col => {
             let sfield = col.name;
             let routine = col.routine;
             columnData[headerIndex[sfield]].routine = routine;
-            
-                  
+
+
             let routineStr = routine.replace(/\(@([^\)]+)\)/g, 'row[headerIndex[sanitize("$1")]]');
             // console.log(routineStr);
             let routineFunc = new Function('row',  routineStr);
@@ -441,17 +441,17 @@ function queryHWSet(db, table, query, field) {
 
     $('#messages').html('Running Query<img class="loading" src="./Loading_icon.gif"/>');
     window.setTimeout(function(){
-        // return queryFunc(db, table).then(function(rows) {        
+        // return queryFunc(db, table).then(function(rows) {
         // rows.forEach(function(row, rowIndex) {
         table.forEach(function(row) {
             // console.log(row);
             var tableRow = document.getElementById('mainTable').getElementsByTagName('tbody')[0].insertRow(-1);
-            
+
             var cell;
             cell = tableRow.insertCell(0);
             $(cell).addClass('col_count');
             $(cell).attr('field', 'count');
-            
+
             if ((prev_row == null) || (prev_row[dbGroup] != row[dbGroup])) {
                 $(".col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">&ndash;</strong>');
                 $("td.root[index='" + index + "']").html(count);
@@ -466,12 +466,12 @@ function queryHWSet(db, table, query, field) {
             }
             $(".col_count[index='" + index + "']:not(:first)").html(count + '<strong style="float:right">&ndash;</strong>');
             $("td.root[index='" + index + "']").html(count);
-            
+
             $(tableRow).attr('index', index);
             $(cell).attr('index', index);
             $(cell).attr('clicked', 0);
             cell.textContent = count ;
-            
+
             sanitizedHeaders.map(function(hfield) {
                 var $td = $("<td>", {
                     'field': hfield,
@@ -480,12 +480,12 @@ function queryHWSet(db, table, query, field) {
                 $td.text(row[headerIndex[hfield]]);
                 $td.appendTo($(tableRow));
             });
-            
+
             prev_row = row;
             prev_tableRow = tableRow;
-            
+
         });
-        
+
         refreshTable(db, table, field);
     }, 0);
 }
@@ -1131,22 +1131,22 @@ function loadPrimary(data, headers) {
     $("#key_sel").tooltip('show');
 
     $('#key_sel').off();
-    
+
     // $('#headers').text(headers.join(','));
     for (key in data[0]) {
         // $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
         $('select.re').append('<option>' + key + '</option>');
     };
     $('#regex_bin').modal('show');
-    
+
     $('#regex_submit').off();
-    $('#regex_submit').click(function(){        
+    $('#regex_submit').click(function(){
         initializeDB(data, headers, sanitize('student_id'));
         $('#regex_bin').modal('hide');
         $('#reload_button').show();
     });
     $('#reload_button').off();
-    $('#reload_button').click(function(){        
+    $('#reload_button').click(function(){
         $('#regex_bin').modal('show');
     });
     // $('#key_sel').on('change', function() {
