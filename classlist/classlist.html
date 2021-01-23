@@ -291,7 +291,10 @@ img.loading {
                             <input class="form-control id" style="font-family:Courier" type="text" id="idRe" name="idRe" value="id\s*$"/>
                         </div>
                         <div class="col-sm-3">
-                            <select class="id re form-control"><option>Select...</option></select>
+                            <select class="id re form-control">
+                                <option value="id\s*$">Default</option>
+                                <option value="^$">N/A</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -300,7 +303,7 @@ img.loading {
                             <input class="form-control fullname" style="font-family:Courier" type="text" id="fullnameRe" name="fullnameRe" value="(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)"/>                            
                         </div>
                         <div class="col-sm-3">
-                            <select class="fullname re form-control"><option>Select...</option></select>
+                            <select class="fullname re form-control"><option value="(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -309,7 +312,7 @@ img.loading {
                             <input class="form-control firstname" style="font-family:Courier" type="text" id="firstnameRe" name="firstnameRe" value="First Name\s*$"/>
                         </div>
                         <div class="col-sm-3">
-                            <select class="firstname re form-control"><option>Select...</option></select>
+                            <select class="firstname re form-control"><option value="First Name\s*$">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -318,7 +321,7 @@ img.loading {
                             <input class="form-control lastname" style="font-family:Courier" type="text" id="lastnameRe" name="lastnameRe" value="Last Name\s*$"/>
                         </div>
                         <div class="col-sm-3">
-                            <select class="lastname re form-control"><option>Select...</option></select>
+                            <select class="lastname re form-control"><option value="Last Name\s*$">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -327,7 +330,7 @@ img.loading {
                             <input class="form-control program" style="font-family:Courier" type="text" id="programRe" name="programRe" value="program|major"/>
                             </div>
                         <div class="col-sm-3">
-                            <select class="program re form-control"><option>Select...</option></select>
+                            <select class="program re form-control"><option value="program|major">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -336,7 +339,7 @@ img.loading {
                             <input class="form-control section" style="font-family:Courier" type="text" id="sectionRe" name="sectionRe" value="section"/>
                             </div>
                         <div class="col-sm-3">
-                            <select class="section re form-control"><option>Select...</option></select>
+                            <select class="section re form-control"><option value="section">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -345,7 +348,7 @@ img.loading {
                             <input class="form-control email" style="font-family:Courier" type="text" id="emailRe" name="emailRe" value="mail|address"/>
                             </div>
                         <div class="col-sm-3">
-                            <select class="email re form-control"><option>Select...</option></select>
+                            <select class="email re form-control"><option value="mail|address">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -354,7 +357,7 @@ img.loading {
                             <input class="form-control password" style="font-family:Courier" type="text" id="passwordRe" name="passwordRe" value="password"/>
                             </div>
                         <div class="col-sm-3">
-                            <select class="password re form-control"><option>Select...</option></select>
+                            <select class="password re form-control"><option value="password">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                 </div>

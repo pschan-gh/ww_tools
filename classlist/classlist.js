@@ -1135,7 +1135,7 @@ function loadPrimary(data, headers) {
     // $('#headers').text(headers.join(','));
     for (key in data[0]) {
         // $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
-        $('select.re').append('<option>' + key + '</option>');
+        $('select.re').append('<option value="^' + key + '$">' + key + '</option>');
     };
     $('#regex_bin').modal('show');
 
@@ -1147,6 +1147,23 @@ function loadPrimary(data, headers) {
     });
     $('#reload_button').off();
     $('#reload_button').click(function(){
+        headerNames = [];
+        sanitizedHeaders = [];
+        secondaryHeaderNames = [];
+        sanitizedSecondaryHeaders = [];
+        headerTypes = {};
+        baseQuery = '';
+        clickedArray = {};
+        colWidths = {};
+        primaryDbKeyValues = [];
+        headerIndex = {};
+        dataIndex = {};
+        highlightHue = 0;
+        primaryDbKey = '';
+        primaryKey = '';
+        primaryFile = null;
+        schemaBuilder = null;
+        mainArray = new Array();
         $('#regex_bin').modal('show');
     });
     // $('#key_sel').on('change', function() {
@@ -1304,7 +1321,7 @@ $(function () {
 
      $('select.re').change(function() {
          if (!$(this).val().match(/Select/)) {
-             $(this).closest('div.row').find('input[type="text"]').val('^' + $(this).val() + '$');
+             $(this).closest('div.row').find('input[type="text"]').val($(this).val());
          }
      });
 
