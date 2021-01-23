@@ -2,23 +2,15 @@ var sortField = 'undefined';
 var groupField = 'undefined';
 var headerNames = [];
 var sanitizedHeaders = [];
-var secondaryHeaderNames = [];
-var sanitizedSecondaryHeaders = [];
 var headerTypes = {};
 var baseQuery;
 var clickedArray = {};
 var wscale = 1;
 var colWidths = {};
 var primaryDbKeyValues = [];
-var headerIndex = {};
-var dataIndex = {};
-var highlightHue = 0;
 var primaryDbKey = '';
 var primaryKey = '';
 var primaryFile = null;
-var tableVersion = 0;
-var schemaBuilder;
-var maxCols = 100;
 var columnData = new Object();
 var webworkFields = ['student_id', 'lname', 'fname', 'status', 'comment', 'section', 'recitation', 'email', 'user_id', 'password', 'permission'];
 var mainArray = new Array();
@@ -51,7 +43,6 @@ function initializeDB(data, headers, key) {
 
     var row;
     var rows = [];
-    // var logTable = db.getSchema().table('LogTable' + tableVersion);
 
     postInitialization(null, mainArray);
     updateTable(null, mainArray, data, headers, primaryKey, true);
@@ -68,7 +59,7 @@ function resetTable() {
         hfield = sfield;
         var $th = $("<th>", {"id" : 'th_' + hfield, 'clicked': '0', 'field': hfield, "class":'col_' + hfield});
         var html = '<a id="a_' + hfield + '" href="#" class="header" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + hfield.replace(/_/, ' ') + '</a>';
-        html += '<div class="dropdown-menu" aria-labelledby="a_' + hfield + '"><a class="dropdown-item group_by" field="' + hfield + '" href="#">Group by</a><a class="dropdown-item fields statistics" field="' + hfield + '" href="#" >Statistics</a><a class="dropdown-item recalculate fields" data-toggle="modal" data-target="#column_bin" field="' + hfield + '" href="#">Recalculate</a><a class="dropdown-item fields hide" field="' + hfield + '" href="#">Hide</a></div>';
+        html += '<div class="dropdown-menu" aria-labelledby="a_' + hfield + '"><a class="dropdown-item group_by" field="' + hfield + '" href="#">Group by</a><a class="dropdown-item fields statistics" field="' + hfield + '" href="#" >Statistics</a><a class="dropdown-item recalculate fields" data-toggle="modal" data-target="#column_bin" field="' + hfield + '" href="#">Recalculate</a></div>';
 
         html += "<div class='triangle'>&#x25BA;</div>";
         $th.html(html);
@@ -87,21 +78,15 @@ function sanitize(str) {
 
 function updateTable(db, table, data, headers, key, isPrimary) {
     console.log(data);
-    sanitizedSecondaryHeaders = [];
     var sanitizedField;
     console.log(sanitizedHeaders);
     for (var j = 0; j < headers.length; j++) {
         var field = headers[j];
         sanitizedField = sanitize(field);
         sanitizedField = sanitizedField == '' ? 'BLANK' + j.toString() : sanitizedField;
-        sanitizedSecondaryHeaders.push(sanitizedField);
         if (sanitizedHeaders.indexOf(sanitizedField) <= -1) {
-            console.log('ADDING HEADER ' + sanitizedField);
-            if (field != '') {
-                headerNames.push(field);
-            } else {
-                headerNames.push(sanitizedField);
-            }
+            console.log('ADDING HEADER ' + sanitizedField);            
+            headerNames.push(sanitizedField);
             sanitizedHeaders.push(sanitizedField);
             columnData[sanitizedField]['name'] = sanitizedField;
         }
@@ -112,24 +97,11 @@ function updateTable(db, table, data, headers, key, isPrimary) {
     sortField = key;
     groupField = key;
 
-    updateFieldsMenu();
-
-    $("#second_key_sel")[0].innerHTML = '';
-    updateSecondaryKeys();
-
-    $('#second_key_sel').off();
-    if (!isPrimary) {
-        $('#second_key_sel').on('change', function() {
-            resetTable();
-            var secondaryKey = sanitize($('#second_key_sel').val());
-            updateRows(data, db, table, secondaryKey);
-            $('a.pastebin').removeClass('disabled');
-            $('a.query').removeClass('disabled');
-        });
-    } else {
-        resetTable();
-        updateRows(data, db, table, primaryDbKey);
-    }
+    // updateFieldsMenu();
+    
+    resetTable();
+    updateRows(data, db, table, primaryDbKey);
+    
 }
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
@@ -152,7 +124,6 @@ function updateRows(data, db, table, secondaryDbKey) {
 
     $('#messages').html('Updating Database<img class="loading" src="./Loading_icon.gif"/>');
     console.log(data);
-    console.log(headerIndex);
     console.log(sanitizedHeaders);
     window.setTimeout(function(){
         let sanitizedField;
@@ -164,7 +135,7 @@ function updateRows(data, db, table, secondaryDbKey) {
         re['fullname'] = new RegExp($('#fullnameRe').val(), 'i');
         re['firstname'] = new RegExp($('#firstnameRe').val(), 'i');
         re['lastname'] = new RegExp($('#lastnameRe').val(), 'i');
-        re['program'] = new RegExp($('#programRe').val(), 'i');
+        re['comment'] = new RegExp($('#commentRe').val(), 'i');
         re['section'] = new RegExp($('#sectionRe').val(), 'i');
         re['email'] = new RegExp($('#emailRe').val(), 'i');
         re['password'] = new RegExp($('#passwordRe').val(), 'i');
@@ -215,8 +186,8 @@ function updateRows(data, db, table, secondaryDbKey) {
             }
 
             rowObj['STATUS'] = 'C';
-            if (fieldMask['program'] in dataRow) {
-                rowObj['COMMENT'] = dataRow[fieldMask['program']];
+            if (fieldMask['comment'] in dataRow) {
+                rowObj['COMMENT'] = dataRow[fieldMask['comment']];
             }
             if (fieldMask['section'] in dataRow) {
                 rowObj['SECTION'] = dataRow[fieldMask['section']];
@@ -251,27 +222,8 @@ function updateRows(data, db, table, secondaryDbKey) {
             if (primaryDbKeyValues.indexOf(secondaryKeyValue) <= -1 && secondaryKeyValue != '') {
                 // console.log('NEW ENTRY');
                 var datum = rowObj;
-                // for (var j = 0; j < maxCols; j++) {
-                //     var key = 'COL' + j.toString();
-                //     if (!(key in datum)) {
-                //         datum[key] = " ";
-                //     }
-                // }
-                sanitizedHeaders.forEach(sfield => {
-                    if (sfield in headerIndex) {
-                        let dbField = sfield;
-                        if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
-                            datum[dbField] = rowObj[dbField];
-                        } else {
-                            datum[dbField] = " ";
-                        }
-                    }
-                });
 
                 datum[primaryDbKey] = secondaryKeyValue;
-                // console.log(datum);
-                // newRows.push(table.createRow(datum));
-                
                 table.push(datum);
                 
                 primaryDbKeyValues.push(secondaryKeyValue.toString());
@@ -284,14 +236,7 @@ function updateRows(data, db, table, secondaryDbKey) {
                                 let value = rowObj[dbField];
                                 if (value != null && typeof value != typeof undefined) {
                                     table[i][dbField] = value;
-                                }
-
-                                // db.update(table).
-                                // set(table[dbField], value).
-                                // where(table[primaryDbKey].eq(rowObj[secondaryDbKey])).
-                                // exec().then(function() {  // Returns a Promise.
-                                //     report('UPDATED: ' + sfield + ' ' + value);
-                                // });
+                                }                            
                             }
                         });
                         break;
@@ -305,48 +250,9 @@ function updateRows(data, db, table, secondaryDbKey) {
             }
         }
         console.log('INSERT INTO TABLE');
-        // db.insertOrReplace().into(table).values(newRows).exec().then(function() {
-        //     baseQuery = "select().from(table)";
-        //     $('#query').val(baseQuery);
-        //     // queryHWSet(db, table, baseQuery, groupField);
-        //     $(this).val('Select Matching Key...');
-        //     let columnsWithRoutines = [];
-        //     for (let key in columnData) {
-        //         if (columnData.hasOwnProperty(key)) {
-        //             if (columnData[key].hasOwnProperty('routine') && columnData[key].routine != "") {
-        //                 columnsWithRoutines.push(columnData[key]);
-        //             }
-        //         }
-        //     }
-        //     console.log(columnData);
-        //     recalculateColumns(db, table, columnsWithRoutines);
-        // });
         let columnsWithRoutines = [];
         recalculateColumns(db, table, columnsWithRoutines);
     }, 0);
-}
-
-function addColumn(db, table, field, routine) {
-
-    let sanitizedField = sanitize(field);
-    sanitizedField = sanitizedField == '' ? 'BLANK' + sanitizedHeaders.length : sanitizedField;
-
-    if (sanitizedHeaders.indexOf(sanitizedField) <= -1) {
-        // sanitizedHeaders.push(sanitizedField);
-        if (field != '') {
-            headerNames.push(field);
-        } else {
-            headerNames.push(sanitizedField);
-        }
-        sanitizedHeaders.push(sanitizedField);
-        sanitizedField = 'COL' + sanitizedHeaders.length;
-    }
-    dataIndex[sanitizedField] = field;
-
-    columnData[sanitizedField]['name'] = sanitizedField;
-    columnData[sanitizedField]['routine'] = routine;
-    recalculateColumns(db, table, [{name: sanitizedField, routine: routine}]);
-    addFieldToMenu(sanitizedField);
 }
 
 function recalculateColumns(db, table, columns) {
@@ -372,32 +278,10 @@ function recalculateColumns(db, table, columns) {
             // console.log(sfield);
             // console.log(sfield);
             rowObj[sfield] = routineFunc(rowObj);
-            var datum = {};
-            for (var j = 0; j < sanitizedHeaders.length; j++) {
-                sanitizedField = sanitizedHeaders[j];
-                if (sanitizedField in headerIndex) {
-                    dbField = sanitizedField;
-                    if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
-                        datum[dbField] = rowObj[dbField];
-                    } else {
-                        datum[dbField] = "";
-                    }
-                }
-            }
-            for (var j = 0; j < maxCols; j++) {
-                var key = 'COL' + j.toString();
-                if (!(key in datum)) {
-                    datum[key] = "";
-                }
-            }
-            // newRows.push(datum);
+            var datum = rowObj;
+            
         });
     });
-    // db.insertOrReplace().into(table).values(newRows).exec().then(function() {
-    //     console.log(groupField);
-    //     queryHWSet(db, newRows, baseQuery, groupField);
-    // });
-    // queryHWSet(db, newRows, baseQuery, groupField);
     queryHWSet(db, table, baseQuery, groupField);
 }
 
@@ -530,8 +414,6 @@ function refreshTable(db, table, field) {
         $("td." + colClass).css('color', '');
         $("td.col_count").css('color', '');
         $("tbody tr[clicked=1] td").css('color', '');
-        $("tbody tr[clicked=1][index='" + index + "'] td.col_count").css('background-color', 'hsl(' + highlightHue + ', 45%, 90%');
-        highlightHue = (highlightHue + 75) % 360;
         $("tbody tr[clicked!=1] td").css('background-color', '');
 
         $("tbody tr[clicked=1]").show();
@@ -562,16 +444,6 @@ function refreshTable(db, table, field) {
             colWidths[key] = colWidths[key] + 25;
         }
     }
-
-    $('th, td').each(function() {
-        var field = $(this).attr('field');
-        if ($(".field_checkbox[field='" + field + "']").is(':checked')) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-
-    });
 
     var tableWidth = 0;
     $('th:visible').each(function() {
@@ -618,7 +490,7 @@ function updateButtons(db, table) {
             "filename": "table.csv"
         });
 
-        csv = csv.replace(/Group byStatisticsRecalculateHide/g, '');
+        csv = csv.replace(/Group byStatisticsRecalculate/g, '');
 
         let lines = csv.split('\n');
         lines.splice(0,1);
@@ -641,25 +513,6 @@ function updateButtons(db, table) {
         $('th div.triangle').html('&#x25ba;');
     });
 
-    $('#exportJSON').off();
-    $('#exportJSON').on('click', function(){
-        console.log(headerIndex);
-        db.export().then(function(data) {
-            for (let key in headerIndex){
-                if(headerIndex.hasOwnProperty(key)){
-                    columnData[key]['name'] = key;
-                }
-            }
-            var jsonObj = {'primaryDbKey': primaryDbKey, 'columns': columnData, 'database' : data};
-            console.log(jsonObj);
-            // console.log(JSON.stringify(jsonObj));
-            var a = document.createElement('a');
-            a.setAttribute('href', 'data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(jsonObj)));
-            a.setAttribute('download', 'database.json');
-            a.click()
-            // window.location.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
-        });
-    });
 
     $('.field_reference').html('');
     sanitizedHeaders.forEach(function(field) {
@@ -693,11 +546,7 @@ function updateButtons(db, table) {
         // $('.dropdown-toggle.query').dropdown('toggle');
         $('#messages').html('Adding Column<img class="loading" src="./Loading_icon.gif"/>');
         window.setTimeout(function(){
-            if (sanitizedHeaders.indexOf(sfield) <= -1) {
-                addColumn(db, table, sfield, routine);
-            } else {
-                recalculateColumns(db, table, [{name: sfield, routine: routine}]);
-            }
+            recalculateColumns(db, table, [{name: sfield, routine: routine}]);
             $('#column_bin').modal('hide');
         }, 0);
 
@@ -727,81 +576,7 @@ function updateButtons(db, table) {
         }
         reader.readAsText(event.target.files[0]);
     });
-
-    $('#secondary-json-input').off();
-    $('#secondary-json-input').on('change', function(event) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var jsonObj = JSON.parse(e.target.result);
-            console.log(jsonObj);
-            let dataOriginal = jsonObj.database.tables.LogTable0;
-            if (dataOriginal.length < 1) {
-                return;
-            }
-
-            let data = dataOriginal.map(datum => {
-                let newDatum = {};
-                for (key in datum) {
-                    if (datum.hasOwnProperty(key)) {
-                        newDatum[jsonObj.columns[key].name] = datum[key];
-                    }
-                }
-                return newDatum;
-            });
-            // console.log(data);
-
-            let headers = [];
-            let sfield;
-            for (let key in jsonObj.columns) {
-                if(jsonObj.columns.hasOwnProperty(key)){
-                    if (jsonObj.columns[key].name != null && jsonObj.columns[key].name != '' && typeof jsonObj.columns[key].name !== typeof undefined) {
-                        sfield = jsonObj.columns[key].name;
-                        headers.push(sfield);
-                        if (sanitizedHeaders.indexOf(sfield) <= -1) {
-                            console.log('ADDING HEADER ' + sfield);
-                            sfield = 'COL' + sanitizedHeaders.length;
-                            sanitizedHeaders.push(sfield);
-                            columnData[sfield]['name'] = sfield;
-                        }
-                    }
-                    if ('routine' in jsonObj.columns[key]) {
-                        columnData[sfield]['routine'] = jsonObj.columns[key].routine;
-                    }
-                }
-            }
-            console.log(headers);
-            // var contents = e.target.result;
-            updateTable(db, table, data, headers, primaryKey, false);
-            $('#second_key_li').show();
-            $('a.pastebin').addClass('disabled');
-            $('a.query').addClass('disabled');
-        }
-        reader.readAsText(event.target.files[0]);
-    });
-
-    $('#secondary-xlsx-input').off();
-    $('#secondary-xlsx-input').on('change', function(event) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-          var data = e.target.result;
-          var workbook = XLSX.read(data, {
-              type: 'binary'
-          });
-
-          // console.log(workbook.SheetNames);
-          let sheetName = workbook.SheetNames[0];
-          var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
-          console.log(XL_row_object);
-          var json_object = JSON.stringify(XL_row_object);
-          let headers = Object.keys(XL_row_object[0]);
-            console.log(headers);
-            updateTable(db, table, XL_row_object, headers, primaryKey, false);
-            $('#second_key_li').show();
-            $('a.pastebin').addClass('disabled');
-            $('a.query').addClass('disabled');
-        }
-        reader.readAsBinaryString(event.target.files[0]);
-    });
+    
 
     $('#fields_submit').off();
     $('#fields_submit').on('click', function() {
@@ -826,22 +601,6 @@ function updateButtons(db, table) {
 
     $("th a").off();
 
-    $("a.group_by[field!='count'][field!='chkbox']").off();
-    $("a.group_by[field!='count'][field!='chkbox']").on('click', function() {
-        $('th div.triangle').html('&#x25ba;');
-        sortField = $(this).closest('th').attr('field');
-        groupField = sortField;
-        var sort = fieldToLf[sortField];
-
-        var clicked = -1;
-        clickedArray[sortField] = clicked;
-
-        query = baseQuery +  ".orderBy(table." + sortField + ", 'DESC')";
-        $('#query').val(query);
-
-        queryHWSet(db, table, query, groupField);
-    });
-
     $('th').find('.fields.statistics').off();
     $('th').find('.fields.statistics').click(function() {
         var array = [];
@@ -861,12 +620,6 @@ function updateButtons(db, table) {
         $('#column_bin').find('.column_name').val(sfield);
         $('#column_routine').val('');
         $('#column_routine').val(columnData[sfield]['routine']);
-    });
-
-    $('.fields.hide').off();
-    $('.fields.hide').click(function() {
-        var field = $(this).attr('field');
-        $('#' + field + '_checkbox').click();
     });
 
     $("th div.triangle").off();
@@ -971,36 +724,19 @@ function statistics(values, field) {
 
 }
 
-
-function addFieldToMenu(field) {
-    var a = document.createElement("a");
-    $(a).addClass("dropdown-item");
-    $(a).attr('href', "#");
-
-    $(a).html("<input class='field_checkbox' checked type='checkbox' field='" + field + "' id='" + field + "_checkbox'>&nbsp;<label class='form-check-label' for='" + field + "_checkbox'>" + field + "</label>" +
-    "&nbsp;&nbsp;<a href='#' class='fields statistics' field='" + field + "'>Statistics</a>");
-    $("#columns_menu").append(a);
-
-    var f = document.createElement("a");
-    $(f).addClass("dropdown-item");
-    $(f).attr('href', "#");
-    $(f).html("<span class='fields_item' field='" + field + "'>" + field + "</span>");
-    $(".fields_menu").append(f);
-}
-
-function updateFieldsMenu() {
-    $('#columns_menu').html('');
-    var a = document.createElement("a");
-    $(a).addClass("dropdown-item");
-    $(a).attr('href', "#");
-    $(a).html("<input class='field_checkbox' checked type='checkbox' field='count' id='count_checkbox'>&nbsp;<label class='form-check-label' for='count_checkbox'>Count</label>");
-    $("#columns_menu").append(a);
-
-    sanitizedHeaders.map(function(field) {
-        addFieldToMenu(field);
-    });
-
-}
+// function updateFieldsMenu() {
+//     $('#columns_menu').html('');
+//     var a = document.createElement("a");
+//     $(a).addClass("dropdown-item");
+//     $(a).attr('href', "#");
+//     $(a).html("<input class='field_checkbox' checked type='checkbox' field='count' id='count_checkbox'>&nbsp;<label class='form-check-label' for='count_checkbox'>Count</label>");
+//     $("#columns_menu").append(a);
+// 
+//     sanitizedHeaders.map(function(field) {
+//         addFieldToMenu(field);
+//     });
+// 
+// }
 
 function updateKeys() {
     var o = new Option("option text", "value");
@@ -1082,27 +818,9 @@ function updateKeys() {
 
 }
 
-function updateSecondaryKeys() {
-    var o = new Option("option text", "value");
-    $(o).html('Select Matching Key...');
-    $(o).attr('selected');
-    $("#second_key_sel").append(o);
-
-    sanitizedSecondaryHeaders.map(function(field, index) {
-        var o = new Option("option text", "value");
-        $(o).html(field);
-        $(o).val(field);
-        $("#second_key_sel").append(o);
-    });
-
-}
-
 function loadPrimary(data, headers) {
     colWidths = {};
-    for (var i = 0; i < maxCols; i++) {
-        columnData['COL' + i] = {};
-    }
-
+    
     var field;
     var sanitizedField;
 
@@ -1117,22 +835,12 @@ function loadPrimary(data, headers) {
         sanitizedField = sanitize(field);
         sanitizedHeaders.push(sanitizedField);
         headerTypes[sanitizedField] = 'STRING';
-        sanitizedField = 'COL' + j.toString();
-        // columnData[sanitizedField]['name'] = sanitizedField;
-        columnData[sanitizedField]['routine'] = '';
-        dataIndex[sanitizedField] = headers[j];
+        columnData[sanitizedField] = {};
+        columnData[sanitizedField]['routine'] = '';        
     }
 
-    $("#key_sel").html('');
-    $("#second_key_sel").html('');
     updateKeys();
-    $('#key_div').css('display', 'inline-block');
-    $('#hover_msg').text('Please Set the Primary Key');
-    $("#key_sel").tooltip('show');
-
-    $('#key_sel').off();
-
-    // $('#headers').text(headers.join(','));
+    
     for (key in data[0]) {
         // $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
         $('select.re').append('<option value="^' + key + '$">' + key + '</option>');
@@ -1149,20 +857,14 @@ function loadPrimary(data, headers) {
     $('#reload_button').click(function(){
         headerNames = [];
         sanitizedHeaders = [];
-        secondaryHeaderNames = [];
-        sanitizedSecondaryHeaders = [];
         headerTypes = {};
         baseQuery = '';
         clickedArray = {};
         colWidths = {};
         primaryDbKeyValues = [];
-        headerIndex = {};
-        dataIndex = {};
-        highlightHue = 0;
         primaryDbKey = '';
         primaryKey = '';
         primaryFile = null;
-        schemaBuilder = null;
         mainArray = new Array();
         $('#regex_bin').modal('show');
     });
@@ -1202,10 +904,7 @@ function postInitialization(db, table) {
     $('a.pastebin').removeClass('disabled');
     $('a.query').removeClass('disabled');
 
-    $('#import').hide();
-    $('#exportJSON').show();
-    $('#columns_toggle').show();
-    $('#fields').closest('li').hide();
+    $('#import').hide();    
     $('#primary-file-input').closest('li').hide();
     $('#query').closest('li').show();
     $('#messages').html('<strong>Database Loaded.</strong>');
@@ -1349,21 +1048,14 @@ $(function () {
          groupField = 'undefined';
          headerNames = [];
          sanitizedHeaders = [];
-         secondaryHeaderNames = [];
-         sanitizedSecondaryHeaders = [];
          headerTypes = {};
          baseQuery = '';
          clickedArray = {};
          colWidths = {};
          primaryDbKeyValues = [];
-         headerIndex = {};
-         dataIndex = {};
-         highlightHue = 0;
          primaryDbKey = '';
          primaryKey = '';
          primaryFile = null;
-         schemaBuilder = null;
-         maxCols = 100;
          columnData = new Object();
          mainArray = new Array();
      });

@@ -113,59 +113,13 @@ img.loading {
                         <input class="form-control-file form-control-sm dropdown-item" type="file" style="display:none" id="importXLSX" accept=".xlsx, .xls"/> -->
                     </div>
                 </li>
-                <li class="nav-item" style="display:none">
-                    <a class="nav-link" href="#" id="key_div" style="display:none;">
-                        <!-- <select id="key_sel" name="key_sel" class="form-control form-control-sm" data-toggle="tooltip" data-placement="bottom" title="Set Primary Key"> -->
-                        <select id="key_sel" name="key_sel" class="form-control form-control-sm">
-                            <option selected>Select Primary Key...</option>
-                        </select>
-                    </a>
-                </li>
+                
                 <li class="nav-item">
                     <button type="button" id="reload_button" class="btn btn-primary" style="display:none;">Reload</button>
                 </li>
-                <li class="nav-item dropdown update" style="display:none">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                         Update with:
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="width:20em;">
-                        <label for="secondary-file-input" class="dropdown-item secondary-input">Open CSV</label>
-                        <input style="display:none" class="form-control-form form-control-sm" type="file" id="secondary-file-input" accept=".csv, .txt, .lst"/>
-                        <a class="pastebin dropdown-item" data-toggle="modal" data-target="#pastebin">Paste</a>
-                    </div>
-                </li>
-                <li class="nav-item" id="second_key_li" style="display:none;">
-                    <a class="nav-link" href="#">
-                        <select id="second_key_sel" name="second_key_sel" class="form-control form-control-sm">
-                            <option selected>Select Matching Key...</option>
-                        </select>
-                    </a>
-                </li>
-                <li class="nav-item calculated_column">
-                    <a class="fields nav-link" data-toggle="modal" data-target="#column_bin" href="#" id="calculated_column" style="display:none">Add Calculated Column</a>
-                </li>
+                
             </ul>
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item dropdown" id="columns_toggle" style="display:none">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display:none">
-                         Columns
-                    </a>
-                    <div class="dropdown-menu" id="columns_menu" aria-labelledby="dropdownMenuButton" onclick=" event.stopPropagation();">
-                    </div>
-                </li>
-                <li class="nav-item" style="display:none">
-                    <a class="nav-link query dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="display:none">Query</a>
-                    <form style="width:100%; padding:5px" div class="dropdown-menu query" aria-labelledby="navbarDropdown">
-                        <div class="form-row">
-                            <div class="form-group col-md-11">
-                                <input class="form-control" style="font-family:Courier" type="text" id="query" name="query">
-                            </div>
-                            <div class="form-group col-md-1">
-                                <input id="query_submit" class="form-control" type="button" value="Submit">
-                            </div>
-                        </div>
-                    </form>
-                </li>
+            <ul class="navbar-nav ml-auto">                
                 <li class="nav-item dropdown" id="export" style="display:none">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Export
@@ -325,12 +279,12 @@ img.loading {
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="programRe" class="col-sm-2 col-form-label"><strong>Program</strong></label>
+                        <label for="commentRe" class="col-sm-2 col-form-label"><strong>Comment</strong></label>
                         <div class="col-sm-7">
-                            <input class="form-control program" style="font-family:Courier" type="text" id="programRe" name="programRe" value="program|major"/>
+                            <input class="form-control comment" style="font-family:Courier" type="text" id="commentRe" name="commentRe" value="program|major"/>
                             </div>
                         <div class="col-sm-3">
-                            <select class="program re form-control"><option value="program|major">Default</option><option value="^$">N/A</option></select>
+                            <select class="comment re form-control"><option value="comment|major">Default</option><option value="^$">N/A</option></select>
                         </div>
                     </div>
                     <div class="form-group row">
