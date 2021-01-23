@@ -38,11 +38,10 @@ function initializeDB(data, headers, key) {
     var row;
     var rows = [];
     var field;
-    var dbKey = headerIndex[key];
+    var dbKey = key;
     var dbName = 'csvDB' + JSON.stringify(data).hashCode();
 
     console.log('DB NAME: ' + dbName);
-    indexedDB.deleteDatabase(dbName);
     console.log(dbName + ' DELETED');
 
     sortField = key;
@@ -103,13 +102,12 @@ function updateTable(db, table, data, headers, key, isPrimary) {
             } else {
                 headerNames.push(sanitizedField);
             }
-            headerIndex[sanitizedField] = 'COL' + sanitizedHeaders.length;
             sanitizedHeaders.push(sanitizedField);
-            columnData[headerIndex[sanitizedField]]['name'] = sanitizedField;
+            columnData[sanitizedField]['name'] = sanitizedField;
         }
     }
 
-    primaryDbKey = headerIndex[key];
+    primaryDbKey = key;
     primaryKey = key;
     sortField = key;
     groupField = key;
@@ -124,7 +122,7 @@ function updateTable(db, table, data, headers, key, isPrimary) {
         $('#second_key_sel').on('change', function() {
             resetTable();
             var secondaryKey = sanitize($('#second_key_sel').val());
-            updateRows(data, db, table, headerIndex[secondaryKey]);
+            updateRows(data, db, table, secondaryKey);
             $('a.pastebin').removeClass('disabled');
             $('a.query').removeClass('disabled');
         });
@@ -202,41 +200,41 @@ function updateRows(data, db, table, secondaryDbKey) {
                 }
             }
 
-            rowObj[headerIndex['STUDENT_ID']] = dataRow[fieldMask['student_id']];
+            rowObj['STUDENT_ID'] = dataRow[fieldMask['student_id']];
             if ('firstname' in fieldMask && 'lastname' in fieldMask) {
-                rowObj[headerIndex['FNAME']] = dataRow[fieldMask['firstname']];
-                rowObj[headerIndex['LNAME']] = dataRow[fieldMask['lastname']];
+                rowObj['FNAME'] = dataRow[fieldMask['firstname']];
+                rowObj['LNAME'] = dataRow[fieldMask['lastname']];
             } else if ('fullname' in fieldMask) {
                 let fullname = dataRow[fieldMask['fullname']].split(',');
-                rowObj[headerIndex['LNAME']] = fullname[0].replace(/[^a-z ]/ig, '');;
+                rowObj['LNAME'] = fullname[0].replace(/[^a-z ]/ig, '');;
                 if (fullname.length > 1) {
-                    rowObj[headerIndex['FNAME']] = fullname[1].replace(/[^a-z ]/ig, '');
+                    rowObj['FNAME'] = fullname[1].replace(/[^a-z ]/ig, '');
                 } else {
-                    rowObj[headerIndex['FNAME']] = '';
+                    rowObj['FNAME'] = '';
                 }
             }
 
-            rowObj[headerIndex['STATUS']] = 'C';
+            rowObj['STATUS'] = 'C';
             if (fieldMask['program'] in dataRow) {
-                rowObj[headerIndex['COMMENT']] = dataRow[fieldMask['program']];
+                rowObj['COMMENT'] = dataRow[fieldMask['program']];
             }
             if (fieldMask['section'] in dataRow) {
-                rowObj[headerIndex['SECTION']] = dataRow[fieldMask['section']];
+                rowObj['SECTION'] = dataRow[fieldMask['section']];
             }
-            rowObj[headerIndex['RECITATION']] = '';
+            rowObj['RECITATION'] = '';
             if (emailSuffix != '') {
-                rowObj[headerIndex['EMAIL']] = dataRow[fieldMask['student_id']] + '@' + emailSuffix;
+                rowObj['EMAIL'] = dataRow[fieldMask['student_id']] + '@' + emailSuffix;
             } else {
-                rowObj[headerIndex['EMAIL']] = dataRow[fieldMask['email']];
+                rowObj['EMAIL'] = dataRow[fieldMask['email']];
             }
-            rowObj[headerIndex['USER_ID']] = dataRow[fieldMask['student_id']];
+            rowObj['USER_ID'] = dataRow[fieldMask['student_id']];
             if (passwordAutoGen == 'true') {
-                // rowObj[headerIndex['PASSWORD']] = 'FAILSAFE' + Math.floor(Math.random() * 10000).toString();
-                rowObj[headerIndex['PASSWORD']] = passwordGen(8);
+                // rowObj['PASSWORD'] = 'FAILSAFE' + Math.floor(Math.random() * 10000).toString();
+                rowObj['PASSWORD'] = passwordGen(8);
             } else {
-                rowObj[headerIndex['PASSWORD']] = dataRow[fieldMask['PASSWORD']];
+                rowObj['PASSWORD'] = dataRow[fieldMask['PASSWORD']];
             }
-            rowObj[headerIndex['PERMISSION']] = '0';
+            rowObj['PERMISSION'] = '0';
 
 
             console.log(rowObj);
@@ -252,16 +250,16 @@ function updateRows(data, db, table, secondaryDbKey) {
             // insert new database entry
             if (primaryDbKeyValues.indexOf(secondaryKeyValue) <= -1 && secondaryKeyValue != '') {
                 // console.log('NEW ENTRY');
-                var datum = {};
-                for (var j = 0; j < maxCols; j++) {
-                    var key = 'COL' + j.toString();
-                    if (!(key in datum)) {
-                        datum[key] = " ";
-                    }
-                }
+                var datum = rowObj;
+                // for (var j = 0; j < maxCols; j++) {
+                //     var key = 'COL' + j.toString();
+                //     if (!(key in datum)) {
+                //         datum[key] = " ";
+                //     }
+                // }
                 sanitizedHeaders.forEach(sfield => {
                     if (sfield in headerIndex) {
-                        let dbField = headerIndex[sfield];
+                        let dbField = sfield;
                         if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
                             datum[dbField] = rowObj[dbField];
                         } else {
@@ -273,13 +271,15 @@ function updateRows(data, db, table, secondaryDbKey) {
                 datum[primaryDbKey] = secondaryKeyValue;
                 // console.log(datum);
                 // newRows.push(table.createRow(datum));
+                
                 table.push(datum);
+                
                 primaryDbKeyValues.push(secondaryKeyValue.toString());
             } else { // udpate existing database entry
                 for(let i = 0; i < table.length; i++) {
                     if (table[i][primaryDbKey] == rowObj[secondaryDbKey]) {
                         sanitizedHeaders.map(function(sfield) {
-                            let dbField = headerIndex[sfield];
+                            let dbField = sfield;
                             if (dbField != primaryDbKey) {
                                 let value = rowObj[dbField];
                                 if (value != null && typeof value != typeof undefined) {
@@ -339,12 +339,12 @@ function addColumn(db, table, field, routine) {
             headerNames.push(sanitizedField);
         }
         sanitizedHeaders.push(sanitizedField);
-        headerIndex[sanitizedField] = 'COL' + sanitizedHeaders.length;
+        sanitizedField = 'COL' + sanitizedHeaders.length;
     }
     dataIndex[sanitizedField] = field;
 
-    columnData[headerIndex[sanitizedField]]['name'] = sanitizedField;
-    columnData[headerIndex[sanitizedField]]['routine'] = routine;
+    columnData[sanitizedField]['name'] = sanitizedField;
+    columnData[sanitizedField]['routine'] = routine;
     recalculateColumns(db, table, [{name: sanitizedField, routine: routine}]);
     addFieldToMenu(sanitizedField);
 }
@@ -363,20 +363,20 @@ function recalculateColumns(db, table, columns) {
         columns.forEach(col => {
             let sfield = col.name;
             let routine = col.routine;
-            columnData[headerIndex[sfield]].routine = routine;
+            columnData[sfield].routine = routine;
 
 
-            let routineStr = routine.replace(/\(@([^\)]+)\)/g, 'row[headerIndex[sanitize("$1")]]');
+            let routineStr = routine.replace(/\(@([^\)]+)\)/g, 'row[sanitize("$1")]');
             // console.log(routineStr);
             let routineFunc = new Function('row',  routineStr);
             // console.log(sfield);
-            // console.log(headerIndex[sfield]);
-            rowObj[headerIndex[sfield]] = routineFunc(rowObj);
+            // console.log(sfield);
+            rowObj[sfield] = routineFunc(rowObj);
             var datum = {};
             for (var j = 0; j < sanitizedHeaders.length; j++) {
                 sanitizedField = sanitizedHeaders[j];
                 if (sanitizedField in headerIndex) {
-                    dbField = headerIndex[sanitizedField];
+                    dbField = sanitizedField;
                     if (typeof rowObj[dbField] !== "undefined" && rowObj[dbField] !== null) {
                         datum[dbField] = rowObj[dbField];
                     } else {
@@ -423,7 +423,7 @@ function queryHWSet(db, table, query, field) {
     $('td').css('border-right', '');
     $('td').css('color', '#eee');
 
-    var dbGroup = headerIndex[field];
+    var dbGroup = field;
 
     resetTable();
 
@@ -477,7 +477,7 @@ function queryHWSet(db, table, query, field) {
                     'field': hfield,
                     'class':'col_' + hfield
                 });
-                $td.text(row[headerIndex[hfield]]);
+                $td.text(row[hfield]);
                 $td.appendTo($(tableRow));
             });
 
@@ -647,7 +647,7 @@ function updateButtons(db, table) {
         db.export().then(function(data) {
             for (let key in headerIndex){
                 if(headerIndex.hasOwnProperty(key)){
-                    columnData[headerIndex[key]]['name'] = key;
+                    columnData[key]['name'] = key;
                 }
             }
             var jsonObj = {'primaryDbKey': primaryDbKey, 'columns': columnData, 'database' : data};
@@ -689,7 +689,7 @@ function updateButtons(db, table) {
     $('#column_submit').on('click', function() {
         let sfield = $('#column_bin').find('.column_name').val();
         let routine = $('#column_routine').val();
-        // columnData[headerIndex[sanitizedField]]['name'] = sanitizedField;
+        // columnData[sanitizedField]['name'] = sanitizedField;
         // $('.dropdown-toggle.query').dropdown('toggle');
         $('#messages').html('Adding Column<img class="loading" src="./Loading_icon.gif"/>');
         window.setTimeout(function(){
@@ -759,13 +759,13 @@ function updateButtons(db, table) {
                         headers.push(sfield);
                         if (sanitizedHeaders.indexOf(sfield) <= -1) {
                             console.log('ADDING HEADER ' + sfield);
-                            headerIndex[sfield] = 'COL' + sanitizedHeaders.length;
+                            sfield = 'COL' + sanitizedHeaders.length;
                             sanitizedHeaders.push(sfield);
-                            columnData[headerIndex[sfield]]['name'] = sfield;
+                            columnData[sfield]['name'] = sfield;
                         }
                     }
                     if ('routine' in jsonObj.columns[key]) {
-                        columnData[headerIndex[sfield]]['routine'] = jsonObj.columns[key].routine;
+                        columnData[sfield]['routine'] = jsonObj.columns[key].routine;
                     }
                 }
             }
@@ -836,7 +836,7 @@ function updateButtons(db, table) {
         var clicked = -1;
         clickedArray[sortField] = clicked;
 
-        query = baseQuery +  ".orderBy(table." + headerIndex[sortField] + ", 'DESC')";
+        query = baseQuery +  ".orderBy(table." + sortField + ", 'DESC')";
         $('#query').val(query);
 
         queryHWSet(db, table, query, groupField);
@@ -860,7 +860,7 @@ function updateButtons(db, table) {
         let sfield = $(this).attr('field');
         $('#column_bin').find('.column_name').val(sfield);
         $('#column_routine').val('');
-        $('#column_routine').val(columnData[headerIndex[sfield]]['routine']);
+        $('#column_routine').val(columnData[sfield]['routine']);
     });
 
     $('.fields.hide').off();
@@ -1117,9 +1117,9 @@ function loadPrimary(data, headers) {
         sanitizedField = sanitize(field);
         sanitizedHeaders.push(sanitizedField);
         headerTypes[sanitizedField] = 'STRING';
-        headerIndex[sanitizedField] = 'COL' + j.toString();
-        // columnData[headerIndex[sanitizedField]]['name'] = sanitizedField;
-        columnData[headerIndex[sanitizedField]]['routine'] = '';
+        sanitizedField = 'COL' + j.toString();
+        // columnData[sanitizedField]['name'] = sanitizedField;
+        columnData[sanitizedField]['routine'] = '';
         dataIndex[sanitizedField] = headers[j];
     }
 
