@@ -1,0 +1,157 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" integrity="sha256-Z0FmvP1JtDmwVaHpsgu75FrC/SInDnlFWL95M65PCr4=" crossorigin="anonymous" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js" integrity="sha256-dxKVPdWCaZTdphHQqQEc0GSDAVZJCxshwn3ZrvHtqgo=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/ww_test/AMtoMQlite.js"></script>
+
+<style>
+#math-field {
+    font-size:2em;
+}
+#latex, #asciimath {
+    font-family:courier;
+    font-weight:bold;
+}
+
+.latex {
+    display:none;
+}
+
+.left, .right {
+    border: solid #ddd 1px;
+    border-radius:5px;
+    height:100%;
+    width:48%;
+}
+.left {
+    float:left;
+}
+.right {
+    margin-right:5px;
+    float:right;
+}
+
+.mathbox {
+    border:solid 5px #bbe;
+    border-radius:5px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+</style>
+
+<script>
+var MQ = MathQuill.getInterface(2);
+</script>
+
+
+</head>
+
+<body style="width:100%;font-size:14pt;font-family:sans-serif">
+<div id="container" style="width:100%; margin:auto;"> 
+    <div class="left">
+        <button class="btn" id="mathquill">Math</button>     
+        <div style="margin:auto;margin-top:10px;width:95%;height:40em;border: solid 2px #ddd" id="editor" contenteditable="true">
+            But I must explain to you how all this mistaken idea of reprobating pleasure and extolling pain arose. To do so, I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.
+            <p/>
+            Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find 
+            <p/>
+            fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure? [33] On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee the pain and trouble that are bound to ensue; and equal blame belongs to those who fail in their duty through weakness of will, which is the same 
+            <p/>
+            as saying through shrinking from toil and pain. These cases are perfectly simple and easy to distinguish. In a free hour, when our power of choice is untrammeled and when nothing prevents our being able to do what we like best, every pleasure is to be welcomed and every pain avoided. But in certain circumstances and owing to the claims of duty or the obligations of business it will frequently occur that pleasures have to be repudiated and annoyances accepted. The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains.
+        </div>
+    </div>
+    <div class="right">
+    </div>
+</div>
+
+<script>
+  var mathFieldSpan = document.getElementById('math-field');
+  var latexSpan = document.getElementById('latex');
+  var asciimathSpan = document.getElementById('asciimath');
+
+  var mathField = MQ.MathField(mathFieldSpan, {
+      spaceBehavesLikeTab: true, // configurable
+      handlers: {
+	  edit: function() { // useful event handlers
+	      latexSpan.value = mathField.latex(); // simple API
+	      asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
+	  }
+      }
+  });
+  $('#asciimath').keyup(function() {
+      var mq = AMtoMQ($(this).val());
+      console.log(mq);
+      mathField.latex(mq);
+  });
+  
+  var mqID = 0;
+  
+  // http://jsfiddle.net/timdown/jwvha/527/
+  function pasteHtmlAtCaret(html) {
+    var sel, range;
+    if (window.getSelection) {
+        // IE9 and non-IE
+        sel = window.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            range = sel.getRangeAt(0);
+            range.deleteContents();
+
+            // Range.createContextualFragment() would be useful here but is
+            // only relatively recently standardized and is not supported in
+            // some browsers (IE9, for one)
+            var el = document.createElement("div");
+            el.innerHTML = html;
+            var frag = document.createDocumentFragment(), node, lastNode;
+            while ( (node = el.firstChild) ) {
+                lastNode = frag.appendChild(node);
+            }
+            var firstNode = frag.firstChild;
+            range.insertNode(frag);
+            
+            // Preserve the selection
+            if (lastNode) {
+                range = range.cloneRange();
+                range.setStartAfter(lastNode);                
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+    } else if ( (sel = document.selection) && sel.type != "Control") {
+        // IE < 9
+        var originalRange = sel.createRange();
+        originalRange.collapse(true);
+        sel.createRange().pasteHTML(html);
+        if (selectPastedContent) {
+            range = sel.createRange();
+            range.setEndPoint("StartToStart", originalRange);
+            range.select();
+        }
+    }
+}
+
+document.getElementById("mathquill").onclick = function() {
+    document.getElementById('editor').focus();
+    pasteHtmlAtCaret('<div class="mathbox" id="mq'+ mqID + '" contenteditable="false"><span class="latex"></span></div>');
+    $('#mq' + mqID).click(function() {
+        var mq = this;
+        let localMathField = MQ.MathField(this, {
+            spaceBehavesLikeTab: true, // configurable
+            handlers: {
+                edit: function() { // useful event handlers
+                    $(mq).find('.latex').text(localMathField.latex()); // simple API
+                    // asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
+                }
+            }
+        });
+        // $(this).find('.mq-root-block').focus();
+    });
+    $('#mq' + mqID).click();    
+    mqID++;
+    return false;
+};
+
+
+</script>
+</body>
