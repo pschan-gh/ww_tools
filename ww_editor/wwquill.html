@@ -1,9 +1,25 @@
 <html>
 <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" integrity="sha256-Z0FmvP1JtDmwVaHpsgu75FrC/SInDnlFWL95M65PCr4=" crossorigin="anonymous" />
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js" integrity="sha256-dxKVPdWCaZTdphHQqQEc0GSDAVZJCxshwn3ZrvHtqgo=" crossorigin="anonymous"></script>
-<script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/ww_test/AMtoMQlite.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" integrity="sha256-Z0FmvP1JtDmwVaHpsgu75FrC/SInDnlFWL95M65PCr4=" crossorigin="anonymous" />
+    
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js" integrity="sha256-dxKVPdWCaZTdphHQqQEc0GSDAVZJCxshwn3ZrvHtqgo=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/ww_test/AMtoMQlite.js"></script>
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <style>
 #math-field {
@@ -18,21 +34,32 @@
     display:none;
 }
 
-.left, .right {
+.left {
     border: solid #ddd 1px;
     border-radius:5px;
     height:100%;
     width:48%;
 }
+.right {
+    height:100%;
+    width:48%;
+    margin-right:5px;
+    float:left;
+}
 .left {
     float:left;
 }
-.right {
-    margin-right:5px;
-    float:right;
+
+.output {
+    border:solid #ddd 2px;
+    border-radius:5px;
+    width:100%;
+    height:45%;
+    margin-top:10px;
 }
 
 .mathbox {
+    display:inline-block;
     border:solid 5px #bbe;
     border-radius:5px;
     margin-left: 5px;
@@ -48,9 +75,9 @@ var MQ = MathQuill.getInterface(2);
 </head>
 
 <body style="width:100%;font-size:14pt;font-family:sans-serif">
-<div id="container" style="width:100%; margin:auto;"> 
+<div id="container" style="width:95%;height:95%;margin:auto;padding:2.5px;"> 
     <div class="left">
-        <button class="btn" id="mathquill">Math</button>     
+        <button class="btn btn-sm btn-primary" id="mathquill">Math</button>     
         <div style="margin:auto;margin-top:10px;width:95%;height:40em;border: solid 2px #ddd" id="editor" contenteditable="true">
             But I must explain to you how all this mistaken idea of reprobating pleasure and extolling pain arose. To do so, I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.
             <p/>
@@ -62,6 +89,10 @@ var MQ = MathQuill.getInterface(2);
         </div>
     </div>
     <div class="right">
+        <button class="btn btn-sm btn-secondary" onclick="render();">Render</button>
+        <button class="btn btn-sm btn-secondary" onclick="latexGen();">Export to LaTeX</button>
+        <div id="rendered" class="output" style="overflow:auto"></div>
+        <textarea id="latex_output" class="output" style="margin-top:10px"></textarea>
     </div>
 </div>
 
@@ -130,17 +161,67 @@ var MQ = MathQuill.getInterface(2);
         }
     }
 }
+let promise = Promise.resolve();  // Used to hold chain of typesetting calls
+
+function typeset(code) {
+  promise = promise.then(() => MathJax.typesetPromise(code()))
+                   .catch((err) => console.log('Typeset failed: ' + err.message));
+  return promise;
+}
+function render() {
+        
+    var clone = document.getElementById('editor').cloneNode(true);
+    
+    var oldElems = clone.getElementsByClassName("latex");
+    // var oldElems = document.getElementById('s' + slideIndex).getElementsByClassName("latexSource");
+    
+    for(var i = oldElems.length - 1; i >= 0; i--) {
+        var oldElem = oldElems.item(i);
+        var parentElem = oldElem.parentNode.parentNode;
+        var innerElem;
+    
+        var textNode = document.createTextNode("$" + oldElem.textContent + "$");
+        parentElem.insertBefore(textNode, oldElem.parentNode);
+    }
+    $(clone).find('.mathbox').remove();    
+    // typeset(() => {
+    //     const math = document.querySelector('#latex_output');
+    //     $('.right div').html($(clone).html());
+    //     return math;
+    // });
+     $('#rendered').html($(clone).html());    
+     MathJax.typesetPromise([$('#rendered')[0]]);
+}
+
+function latexGen() {
+    var clone = document.getElementById('editor').cloneNode(true);
+    
+    var oldElems = clone.getElementsByClassName("latex");
+    // var oldElems = document.getElementById('s' + slideIndex).getElementsByClassName("latexSource");
+    
+    for(var i = oldElems.length - 1; i >= 0; i--) {
+        var oldElem = oldElems.item(i);
+        var parentElem = oldElem.parentNode.parentNode;
+        var innerElem;
+    
+        var textNode = document.createTextNode("$" + oldElem.textContent + "$");
+        parentElem.insertBefore(textNode, oldElem.parentNode);
+    }
+    $(clone).find('.mathbox').remove();    
+    $('#latex_output').val($(clone).html().replace(/\<p\>|\<\/p\>/g, "\n\n").replace(/\n\n+/g, "\n\n"));    
+    
+}
 
 document.getElementById("mathquill").onclick = function() {
     document.getElementById('editor').focus();
-    pasteHtmlAtCaret('<div class="mathbox" id="mq'+ mqID + '" contenteditable="false"><span class="latex"></span></div>');
+    pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>');
     $('#mq' + mqID).click(function() {
         var mq = this;
         let localMathField = MQ.MathField(this, {
             spaceBehavesLikeTab: true, // configurable
             handlers: {
                 edit: function() { // useful event handlers
-                    $(mq).find('.latex').text(localMathField.latex()); // simple API
+                    $('#editor').find('.latex[data-mq="' + $(mq).attr('data-mq') + '"]').text(localMathField.latex()); // simple API
                     // asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
                 }
             }
@@ -151,7 +232,6 @@ document.getElementById("mathquill").onclick = function() {
     mqID++;
     return false;
 };
-
 
 </script>
 </body>
