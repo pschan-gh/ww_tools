@@ -35,6 +35,7 @@ MathJax = {
 }
 
 .left {
+    position:relative;
     border: solid #ddd 1px;
     border-radius:5px;
     height:100%;
@@ -65,6 +66,118 @@ MathJax = {
     margin-left: 5px;
     margin-right: 5px;
 }
+
+/* .quill-toolbar
+{
+    font-size: .75em;
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-55%);
+    right: 10px;
+} */
+
+.quill-toolbar
+{
+    font-size: .75em;
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    /* transform: translateY(-55%); */
+    left: 0;
+    width:100%;
+}
+
+
+.quill-toolbar .symbol-button
+{
+    box-sizing: border-box;
+    /* width: 50px; */
+    text-align: center;
+    padding: 3px;
+    margin: 0;
+    /* display: block; */
+    /* width: 100%; */
+    border-top: 0;
+    border-radius: 0;
+}
+
+.quill-toolbar .symbol-button:first-child
+{
+    border-top: 1px solid #cccccc;
+    border-radius: 4px 4px 0 0;
+}
+
+.quill-toolbar .symbol-button:last-child
+{
+    border-radius: 0 0 4px 4px;
+}
+
+.quill-toolbar > .symbol-button:focus,
+.quill-toolbar > .symbol-button.ui-visual-focus
+{
+    z-index: 9999;
+}
+
+.quill-toolbar .symbol-button .ui-button-text
+{
+    padding: 0;
+}
+
+.quill-toolbar .symbol-button span[id^=icon-]:hover
+{
+    cursor: pointer;
+}
+
+.quill-toolbar .symbol-button:not([id^="text-mq-answer"]) .mq-text-mode
+{
+    height: 10px;
+    width: 8px;
+    transform: translateY(2px);
+    background-color: skyblue !important;
+}
+
+.quill-toolbar .symbol-button .mq-nthroot > .mq-text-mode,
+.quill-toolbar .symbol-button .mq-sup > .mq-text-mode,
+.quill-toolbar .symbol-button .mq-sub > .mq-text-mode
+{
+    height: 6px;
+    width: 6px;
+}
+
+.quill-toolbar .symbol-button .mq-sup > .mq-text-mode
+{
+    transform: translateY(2px);
+}
+
+.quill-toolbar .symbol-button .mq-sub > .mq-text-mode
+{
+    transform: translateY(0px);
+}
+
+.quill-toolbar .symbol-button .mq-supsub
+{
+    height: 6px;
+    width: 6px;
+    margin-left: 2px;
+}
+
+.btn {
+    margin:5px;
+}
+
+#editor {
+    position:absolute;
+    top:30px;
+    left:10px;
+    margin:auto;
+    margin-top:2%;
+    width:95%;
+    height:95%;
+    overflow-y:auto;
+    border: solid 2px #ddd
+}
+
 </style>
 
 <script>
@@ -78,7 +191,7 @@ var MQ = MathQuill.getInterface(2);
 <div id="container" style="width:95%;height:95%;margin:auto;padding:2.5px;"> 
     <div class="left">
         <button class="btn btn-sm btn-primary" id="mathquill">Math</button>     
-        <div style="margin:auto;margin-top:2%;width:95%;height:95%;overflow-y:auto;border: solid 2px #ddd" id="editor" contenteditable="true">
+        <div id="editor" contenteditable="true">
             But I must explain to you how all this mistaken idea of reprobating pleasure and extolling pain arose. To do so, I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.
             <p/>
             Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find 
@@ -208,11 +321,12 @@ function latexGen() {
         parentElem.insertBefore(textNode, oldElem.parentNode);
     }
     $(clone).find('.mathbox').remove();    
-    $('#latex_output').val($(clone).html().replace(/\<p\>|\<\/p\>/g, "\n\n").replace(/\n\n+/g, "\n").replace(/&nbsp;/g, ' '));    
+    $('#latex_output').val($(clone).html().replace(/\<(\/)*(p|div|br)\>/g, "\n\n").replace(/\n\n\n+/g, "\n\n").replace(/&nbsp;/g, ' '));    
     
 }
 
 document.getElementById("mathquill").onclick = function() {
+    $(this).hide();
     document.getElementById('editor').focus();
     pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>');
     $('#mq' + mqID).click(function() {
@@ -226,7 +340,96 @@ document.getElementById("mathquill").onclick = function() {
                 }
             }
         });
-        // $(this).find('.mq-root-block').focus();
+        var answerQuill = $(this);
+        answerQuill.mathField = localMathField ;
+
+        answerQuill.textarea = answerQuill.find("textarea");
+
+        answerQuill.hasFocus = false;
+
+        answerQuill.buttons = [
+            { id: 'frac', latex: '/', tooltip: 'fraction (/)', icon: '\\frac{\\text{\ \ }}{\\text{\ \ }}' },
+            { id: 'abs', latex: '|', tooltip: 'absolute value (|)', icon: '|\\text{\ \ }|' },
+            { id: 'sqrt', latex: '\\sqrt', tooltip: 'square root (sqrt)', icon: '\\sqrt{\\text{\ \ }}' },
+            { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
+            { id: 'exponent', latex: '^', tooltip: 'exponent (^)', icon: '\\text{\ \ }^\\text{\ \ }' },
+            { id: 'infty', latex: '\\infty', tooltip: 'infinity (inf)', icon: '\\infty' },
+            { id: 'pi', latex: '\\pi', tooltip: 'pi (pi)', icon: '\\pi' },
+            { id: 'vert', latex: '\\vert', tooltip: 'such that (vert)', icon: '|' },
+            { id: 'cup', latex: '\\cup', tooltip: 'union (union)', icon: '\\cup' },
+            { id: 'cap', latex: '\\cap', tooltip: 'intersection', icon: '\\cap' },
+            { id: 'leq', latex: '\\leq', tooltip: 'less than or equal (<=)', icon: '\\leq' },
+            { id: 'geq', latex: '\\geq', tooltip: 'greater than or equal (>=)', icon: '\\geq' },
+            { id: 'lim', latex: '\\lim', tooltip: '', icon: '\\lim' },
+            { id: 'rightarrow', latex: '\\rightarrow', tooltip: '', icon: '\\rightarrow' },
+            // { id: 'text', latex: '\\text', tooltip: 'text mode (")', icon: 'Tt' }
+        ];
+
+        // Open the toolbar when the mathquill answer box gains focus.
+        answerQuill.textarea.on('focusin', function() {
+            answerQuill.hasFocus = true;
+            if (answerQuill.toolbar) return;
+            answerQuill.toolbar = $("<div class='quill-toolbar'>" +
+                answerQuill.buttons.reduce(
+                    function(returnString, curButton) {
+                        return returnString +
+                            "<button id='" + curButton.id + "-" + answerQuill.attr('id') +
+                            "' class='symbol-button btn' " +
+                            "' data-latex='" + curButton.latex +
+                            "' data-tooltip='" + curButton.tooltip + "'>" +
+                            "<span id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
+                            + curButton.icon +
+                            "</span>" +
+                            "</button>";
+                    }, ""
+                ) + "</div>");
+            answerQuill.toolbar.appendTo($('.left').first());
+
+            answerQuill.toolbar.find(".symbol-button").each(function() {
+                MQ.StaticMath($("#icon-" + this.id)[0]);
+            });
+
+            // $(".symbol-button").uitooltip( {
+            //     items: "[data-tooltip]",
+            //     position: {my: "right center", at: "left-5px center"},
+            //     show: {delay: 500, effect: "none"},
+            //     hide: {delay: 0, effect: "none"},
+            //     content: function() {
+            //         var element = $(this);
+            //         if (element.prop("disabled")) return;
+            //         if (element.is("[data-tooltip]")) { return element.attr("data-tooltip"); }
+            //     }
+            // });
+
+            $(".symbol-button").on("click", function() {
+                answerQuill.hasFocus = true;
+                answerQuill.mathField.cmd(this.getAttribute("data-latex"));
+                answerQuill.textarea.focus();
+            });
+        });
+
+        answerQuill.textarea.on('focusout', function() {
+            answerQuill.hasFocus = false;
+            setTimeout(function() {
+                if (!answerQuill.hasFocus && answerQuill.toolbar)
+                {
+                    answerQuill.toolbar.remove();
+                    delete answerQuill.toolbar;
+                    $('#mathquill').show();
+                }
+            }, 200);
+        });
+
+        // Trigger an answer preview when the enter key is pressed in an answer box.
+        answerQuill.on('keypress.preview', function(e) {
+            if (e.key == 'Enter' || e.which == 13 || e.keyCode == 13) {
+                // For homework
+                $("#previewAnswers_id").trigger('click');
+                // For gateway quizzes
+                $("input[name=previewAnswers]").trigger('click');
+            }
+        });            
+        
     });
     $('#mq' + mqID).click();
     $('#mq' + mqID).mousedown().mouseup();
