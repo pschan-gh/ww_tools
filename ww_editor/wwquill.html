@@ -315,7 +315,9 @@ function latexGen() {
         parentElem.insertBefore(textNode, oldElem.parentNode);
     }
     $(clone).find('.mathbox').remove();    
-    $('#latex_output').val($(clone).html().replace(/\<(\/)*(p|div|br)\>/g, "\n\n").replace(/\n\n\n+/g, "\n\n").replace(/&nbsp;/g, ' '));    
+    $('#latex_output').val($(clone).html().replace(/\<(\/)*(p|div|br)\>/g, "\n\n").replace(/\n\n\n+/g, "\n\n")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n */g, "\n"));    
     
 }
 
