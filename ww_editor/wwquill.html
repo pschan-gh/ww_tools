@@ -192,13 +192,7 @@ var MQ = MathQuill.getInterface(2);
     <div class="left">
         <button class="btn btn-sm btn-primary" id="mathquill">Math</button>     
         <div id="editor" contenteditable="true">
-            But I must explain to you how all this mistaken idea of reprobating pleasure and extolling pain arose. To do so, I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful.
-            <p/>
-            Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find 
-            <p/>
-            fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure? [33] On the other hand, we denounce with righteous indignation and dislike men who are so beguiled and demoralized by the charms of pleasure of the moment, so blinded by desire, that they cannot foresee the pain and trouble that are bound to ensue; and equal blame belongs to those who fail in their duty through weakness of will, which is the same 
-            <p/>
-            as saying through shrinking from toil and pain. These cases are perfectly simple and easy to distinguish. In a free hour, when our power of choice is untrammeled and when nothing prevents our being able to do what we like best, every pleasure is to be welcomed and every pain avoided. But in certain circumstances and owing to the claims of duty or the obligations of business it will frequently occur that pleasures have to be repudiated and annoyances accepted. The wise man therefore always holds in these matters to this principle of selection: he rejects pleasures to secure other greater pleasures, or else he endures pains to avoid worse pains.
+            The derivative of a function...
         </div>
     </div>
     <div class="right">
@@ -328,7 +322,7 @@ function latexGen() {
 document.getElementById("mathquill").onclick = function() {
     $(this).hide();
     document.getElementById('editor').focus();
-    pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>');
+    pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>&nbsp;&nbsp;');
     $('#mq' + mqID).click(function() {
         var mq = this;
         let localMathField = MQ.MathField(this, {
@@ -340,7 +334,10 @@ document.getElementById("mathquill").onclick = function() {
                 }
             }
         });
+        
         var answerQuill = $(this);
+        $('.quill-toolbar').remove();
+        $('#mathquill').hide();
         answerQuill.mathField = localMathField ;
 
         answerQuill.textarea = answerQuill.find("textarea");
@@ -366,9 +363,34 @@ document.getElementById("mathquill").onclick = function() {
         ];
 
         // Open the toolbar when the mathquill answer box gains focus.
-        answerQuill.textarea.on('focusin', function() {
-            answerQuill.hasFocus = true;
-            if (answerQuill.toolbar) return;
+        // answerQuill.textarea.off();
+        // answerQuill.textarea.on('focusin', function() {
+        //     $('#mathquill').hide();
+        //     answerQuill.hasFocus = true;
+        //     if (!answerQuill.toolbar) {
+        //         answerQuill.toolbar = $("<div class='quill-toolbar'>" +
+        //             answerQuill.buttons.reduce(
+        //             function(returnString, curButton) {
+        //                 return returnString +
+        //                     "<button id='" + curButton.id + "-" + answerQuill.attr('id') +
+        //                     "' class='symbol-button btn' " +
+        //                     "' data-latex='" + curButton.latex +
+        //                     "' data-tooltip='" + curButton.tooltip + "'>" +
+        //                     "<span id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
+        //                     + curButton.icon +
+        //                     "</span>" +
+        //                     "</button>";
+        //             }, ""
+        //         ) + "</div>");
+        //         answerQuill.toolbar.appendTo($('.left').first());
+
+        //         answerQuill.toolbar.find(".symbol-button").each(function() {
+        //             MQ.StaticMath($("#icon-" + this.id)[0]);
+        //             // MathJax.typesetPromise([$("#icon-" + this.id)[0]]);
+        //         });
+        //     }
+        // });
+        if (!answerQuill.toolbar) {
             answerQuill.toolbar = $("<div class='quill-toolbar'>" +
                 answerQuill.buttons.reduce(
                     function(returnString, curButton) {
@@ -382,13 +404,13 @@ document.getElementById("mathquill").onclick = function() {
                             "</span>" +
                             "</button>";
                     }, ""
-                ) + "</div>");
+            ) + "</div>");
             answerQuill.toolbar.appendTo($('.left').first());
 
             answerQuill.toolbar.find(".symbol-button").each(function() {
                 MQ.StaticMath($("#icon-" + this.id)[0]);
+                // MathJax.typesetPromise([$("#icon-" + this.id)[0]]);
             });
-
             // $(".symbol-button").uitooltip( {
             //     items: "[data-tooltip]",
             //     position: {my: "right center", at: "left-5px center"},
@@ -401,34 +423,26 @@ document.getElementById("mathquill").onclick = function() {
             //     }
             // });
 
-            $(".symbol-button").on("click", function() {
+            answerQuill.toolbar.find(".symbol-button").on("click", function() {
                 answerQuill.hasFocus = true;
                 answerQuill.mathField.cmd(this.getAttribute("data-latex"));
                 answerQuill.textarea.focus();
             });
-        });
 
-        answerQuill.textarea.on('focusout', function() {
-            answerQuill.hasFocus = false;
-            setTimeout(function() {
-                if (!answerQuill.hasFocus && answerQuill.toolbar)
-                {
-                    answerQuill.toolbar.remove();
-                    delete answerQuill.toolbar;
-                    $('#mathquill').show();
-                }
-            }, 200);
-        });
-
-        // Trigger an answer preview when the enter key is pressed in an answer box.
-        answerQuill.on('keypress.preview', function(e) {
-            if (e.key == 'Enter' || e.which == 13 || e.keyCode == 13) {
-                // For homework
-                $("#previewAnswers_id").trigger('click');
-                // For gateway quizzes
-                $("input[name=previewAnswers]").trigger('click');
-            }
-        });            
+            answerQuill.textarea.on('focusout', function() {
+                answerQuill.hasFocus = false;
+                setTimeout(function() {
+                    if (!answerQuill.hasFocus && answerQuill.toolbar)
+                    {
+                        answerQuill.toolbar.remove();
+                        delete answerQuill.toolbar; 
+                        if (!$('.quill-toolbar').length) {
+                            $('#mathquill').show();   
+                        }
+                    }
+                }, 200);
+            });
+        }
         
     });
     $('#mq' + mqID).click();
@@ -437,8 +451,9 @@ document.getElementById("mathquill").onclick = function() {
     return true;
 };
 
-$('#editor').click(function() {
-    $(this).attr('contenteditable', 'true');
-});
+// $('#editor').click(function() {
+//     // $(this).attr('contenteditable', 'true');
+//     // $('#mathquill').show();
+// });
 </script>
 </body>
