@@ -799,31 +799,41 @@ function updateProblems(db, table, hwset, sortField) {
 
 $(document).ready(function () {
 	document.getElementById('file-input').addEventListener('change', readSingleFile, false);
-	$('table').each(function () {
-		var $table = $(this);
-		var triangles = {};
-
-		$("#export").click(function () {
-			$('th').each(function() {
-				var triangle = $(this).find('.triangle').detach();
-				triangles[$(this).attr('field')] = triangle;
-			});
-
-			var html = '';
-			$("td[field='answer']").each(function() {
-				html = $(this).find('script[type="math/asciimath"]').html();
-				$(this).html(html);
-				$(this).removeClass('rendered');
-			});
-
-			var csv = $table.table2CSV({
-				delivery: 'value'
-			});
-			window.location.href = 'data:text/csv;charset=UTF-8,'
-			+ encodeURIComponent(csv);
-			$('th').each(function() {
-				$(this).append(triangles[$(this).attr('field')]);
-			});
-		});
-	});
+    $("#export").click(function () {
+        var $table = $('#mainTable');
+        var triangles = {};
+        $('th').each(function() {
+            var triangle = $(this).find('.triangle').detach();
+            triangles[$(this).attr('field')] = triangle;
+        });
+        
+        var html = '';
+        $("td[field='answer']").each(function() {
+            html = $(this).find('script[type="math/asciimath"]').html();
+            $(this).html(html);
+            $(this).removeClass('rendered');
+        });
+        
+        var csv = $table.table2csv('return', {
+            "separator": ",",
+            "newline": "\n",
+            "quoteFields": true,
+            "excludeColumns": ".col_chkbox, .col_count, .col_rank",
+            "excludeRows": "",
+            "trimContent": true,
+            "filename": "table.csv"
+        });
+        console.log(csv);
+        var universalBOM = "\uFEFF";
+        var a = document.createElement('a');
+        a.setAttribute('href', 'data:text/csv;charset=UTF-8,'
+        + encodeURIComponent(universalBOM + csv));
+        a.setAttribute('download', 'untitled.csv');
+        a.click()
+        // window.location.href = 'data:text/csv;charset=UTF-8,'
+        // + encodeURIComponent(csv);
+        $('th').each(function() {
+            $(this).append(triangles[$(this).attr('field')]);
+        });
+    });
 });
