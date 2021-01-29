@@ -1,0 +1,46 @@
+
+.latex {
+    display:none;
+}
+
+.output {
+    border:solid #ddd 2px;
+    border-radius:5px;
+    width:100%;
+    height:45%;
+    margin-top:10px;
+}
+
+.mathbox {
+    display:inline-block;
+    border:solid 2px #d88;
+    border-radius:3px;
+    margin-left: 1px;
+    margin-right: 1px;
+}
+
+.mathbox.infocus {
+    /* border:solid 2px #d88; */
+}
+
+.infocus {
+    /* border:solid 2px #d88; */
+}
+
+
+#editor {
+    position:absolute;
+    top:35px;
+    left:10px;
+    margin:auto;
+    margin-top:2%;
+    width:95%;
+    height:95%;
+    overflow-y:auto;
+    border: solid 2px #ddd;
+    font-family:serif;
+}
+
+textarea.latexentryfield {
+    font-family:monospace;
+}
