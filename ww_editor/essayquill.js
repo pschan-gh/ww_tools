@@ -88,7 +88,7 @@ function editorInit() {
         html = html.replace(/\\\(.*?\\\)/, mathNode);
         mqID++;
     }
-    $('#editor').html(html);
+    $('#editor').html(html.replace(/\n\n+/g, '<br/>'));
 
     $('span.mathbox').each(function() {
         var mq = $(this).find('.mq').first()[0];
@@ -97,36 +97,13 @@ function editorInit() {
         mqInit(mq, latex);
         mqID++;
     });
-    // $('.mathbox').click(function() {
-    //     activeMathbox = this;
-    //     $(this).css("border", "solid 2px #d88");
-    // });
-    $('.mq').click(function() {
-        activeMathbox = $(this).closest('.mathbox').first()[0];
-        $('.mq').removeClass('infocus');
-        $(this).addClass('infocus');
-        $(activeMathbox).addClass('infocus');
-        console.log(activeMathbox);
-        mqInit(this);
-        // $(this).css("border", "solid 2px #d88");
-        $(this).mousedown().mouseup();        
-        mqID++;
-    });
+    
     document.getElementById("mathquill").onclick = function() {
         // $(this).hide();
         document.getElementById('editor').focus();
         pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>&nbsp;&nbsp;');
-        $('#mq' + mqID).click(function() {
-            activeMathbox = $(this).closest('.mathbox').first()[0];
-            $('.mq').removeClass('infocus');
-            $(this).addClass('infocus');
-            $(activeMathbox).addClass('infocus');
-            console.log(activeMathbox);
-            mqInit(this);
-            // $(this).css("border", "solid 2px #d88");
-            $(this).mousedown().mouseup();
-        });
-        $('#mq' + mqID).click();
+        $('#mq' + mqID).off();        
+        mqInit($('#mq' + mqID)[0]);
         $('#mq' + mqID).mousedown().mouseup();
         mqID++;
         return true;
@@ -147,100 +124,108 @@ function mqInit(mq, latex) {
     });
 
     var answerQuill = $(mq);
-    $('.quill-toolbar').remove();
-    // $('#mathquill').hide();
+    
     answerQuill.mathField = localMathField ;
     if (latex) {
         answerQuill.mathField.latex(latex);
     }
 
     answerQuill.textarea = answerQuill.find("textarea");
-
-    answerQuill.hasFocus = false;
-
-    answerQuill.buttons = [
-        { id: 'frac', latex: '/', tooltip: 'fraction (/)', icon: '\\frac{\\text{\ \ }}{\\text{\ \ }}' },
-        { id: 'abs', latex: '|', tooltip: 'absolute value (|)', icon: '|\\text{\ \ }|' },
-        { id: 'sqrt', latex: '\\sqrt', tooltip: 'square root (sqrt)', icon: '\\sqrt{\\text{\ \ }}' },
-        { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
-        { id: 'exponent', latex: '^', tooltip: 'exponent (^)', icon: '\\text{\ \ }^\\text{\ \ }' },
-        { id: 'subscript', latex: '_', tooltip: 'subscript (_)', icon: '\\text{\ \ }_\\text{\ \ }' },
-        { id: 'infty', latex: '\\infty', tooltip: 'infinity (inf)', icon: '\\infty' },
-        { id: 'pi', latex: '\\pi', tooltip: 'pi (pi)', icon: '\\pi' },
-        { id: 'in', latex: '\\in', tooltip: 'in (in)', icon: '\\in' },
-        { id: 'nin', latex: '\\nin', tooltip: 'notin (notin)', icon: '\\nin' },
-        { id: 'subseteq', latex: '\\subseteq', tooltip: 'subseteq (setseteq)', icon: '\\subseteq' },
-        { id: 'Z', latex: '\\Z', tooltip: 'pi (pi)', icon: '\\Z' },
-        { id: 'Q', latex: '\\Q', tooltip: 'pi (pi)', icon: '\\Q' },
-        { id: 'R', latex: '\\R', tooltip: 'pi (pi)', icon: '\\R' },
-        { id: 'C', latex: '\\C', tooltip: 'pi (pi)', icon: '\\C' },
-        { id: 'vert', latex: '\\vert', tooltip: 'such that (vert)', icon: '|' },
-        { id: 'cup', latex: '\\cup', tooltip: 'union (union)', icon: '\\cup' },
-        { id: 'cap', latex: '\\cap', tooltip: 'intersection', icon: '\\cap' },
-        { id: 'neq', latex: '\\leq', tooltip: 'not equal (neq)', icon: '\\neq' },
-        { id: 'leq', latex: '\\leq', tooltip: 'less than or equal (<=)', icon: '\\leq' },
-        { id: 'geq', latex: '\\geq', tooltip: 'greater than or equal (>=)', icon: '\\geq' },
-        { id: 'lim', latex: '\\lim', tooltip: '', icon: '\\lim' },
-        { id: 'rightarrow', latex: '\\rightarrow', tooltip: '', icon: '\\rightarrow' },
-        { id: 'text', latex: '\\text', tooltip: 'text mode (")', icon: 'Tt' },
-    ];
-
-    if (!answerQuill.toolbar) {
-        answerQuill.toolbar = $("<div class='quill-toolbar'>" +
-        answerQuill.buttons.reduce(
-            function(returnString, curButton) {
-                return returnString +
-                "<a id='" + curButton.id + "-" + answerQuill.attr('id') +
-                "' class='symbol-button btn' " +
-                "' data-latex='" + curButton.latex +
-                "' data-tooltip='" + curButton.tooltip + "'>" +
-                "<span id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
-                + curButton.icon +
-                "</span>" +
-                "</a>";
-            }, ""
-        ) + "</div>");
-        answerQuill.toolbar.appendTo($('#output_problem_body').first());
-
-        answerQuill.toolbar.find(".symbol-button").each(function() {
-            MQ.StaticMath($("#icon-" + this.id)[0]);
-        });
-
+    
+    answerQuill.textarea.on('focusout', function() {
+        // var $mq = $(this).closest('.mq').first();
+        answerQuill.hasFocus = false;
+        $('.mq').removeClass('infocus');  
+        $('.mathbox').removeClass('infocus'); 
+        setTimeout(function() {
+            if (!answerQuill.hasFocus)
+            {
+                answerQuill.toolbar.remove();
+                delete answerQuill.toolbar; 
+            }
+        }, 200);
+    });
+    
+    answerQuill.textarea.on('focusin', function() {
+        var $mq = $(this).closest('.mq').first();
+        $('.mathbox').removeClass('infocus');
+        activeMathbox = $(this).closest('.mathbox').first()[0];            
+        $(activeMathbox).addClass('infocus');
+        $(mq).addClass('infocus');
+        if (!answerQuill.toolbar) {
+            answerQuill.toolbar = toolbarGen(answerQuill);
+            answerQuill.toolbar.appendTo($('#output_problem_body').first());            
+            answerQuill.toolbar.find(".button-icons").each(function() {
+                MQ.StaticMath(this);
+            });            
+        }
+        
+        answerQuill.toolbar.find(".symbol-button").off();
         answerQuill.toolbar.find(".symbol-button").on("click", function() {
             answerQuill.hasFocus = true;
             answerQuill.mathField.cmd(this.getAttribute("data-latex"));
             answerQuill.textarea.focus();
         });
+    });
+    
+    activeMathbox = $(mq).closest('.mathbox').first()[0];            
+    $('.mq').removeClass('infocus');
+    $(mq).addClass('infocus');
+    $(activeMathbox).addClass('infocus');
+}
 
-        answerQuill.textarea.on('focusout', function() {
-            answerQuill.hasFocus = false;
-            $('.mq').removeClass('infocus');  
-            $('.mathbox').removeClass('infocus');  
-            setTimeout(function() {
-                if (!answerQuill.hasFocus && answerQuill.toolbar)
-                {
-                    answerQuill.toolbar.remove();
-                    delete answerQuill.toolbar; 
-                    if (!$('.quill-toolbar').length) {
-                        $('#mathquill').show();   
-                    }
-                }
-            }, 200);
-        });
-        
-        // answerQuill.textarea.focusin(function() {
-        //     $('.mathbox').removeClass('infocus');
-        //     activeMathbox = $(this).closest('.mathbox').first()[0];            
-        //     $(activeMathbox).addClass('infocus');
-        // });
-    }
+var toolbarButtons = [
+    { id: 'frac', latex: '/', tooltip: 'fraction (/)', icon: '\\frac{\\text{\ \ }}{\\text{\ \ }}' },
+    { id: 'abs', latex: '|', tooltip: 'absolute value (|)', icon: '|\\text{\ \ }|' },
+    { id: 'sqrt', latex: '\\sqrt', tooltip: 'square root (sqrt)', icon: '\\sqrt{\\text{\ \ }}' },
+    { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
+    { id: 'exponent', latex: '^', tooltip: 'exponent (^)', icon: '\\text{\ \ }^\\text{\ \ }' },
+    { id: 'subscript', latex: '_', tooltip: 'subscript (_)', icon: '\\text{\ \ }_\\text{\ \ }' },
+    { id: 'vector', latex: '\\vec', tooltip: 'vector (\\vec)', icon: '\\vec{\ \ }' },
+    { id: 'matrix', latex: '\\pmatrix', tooltip: 'matrix (\\pmatrix)', icon: '\\pmatrix{& \\\\ & }' },
+    { id: 'infty', latex: '\\infty', tooltip: 'infinity (inf)', icon: '\\infty' },
+    { id: 'pi', latex: '\\pi', tooltip: 'pi (pi)', icon: '\\pi' },
+    { id: 'in', latex: '\\in', tooltip: 'in (in)', icon: '\\in' },
+    { id: 'notin', latex: '\\notin', tooltip: 'notin (notin)', icon: '\\notin' },
+    { id: 'subseteq', latex: '\\subseteq', tooltip: 'subseteq (setseteq)', icon: '\\subseteq' },
+    { id: 'Z', latex: '\\Z', tooltip: 'pi (pi)', icon: '\\Z' },
+    { id: 'Q', latex: '\\Q', tooltip: 'pi (pi)', icon: '\\Q' },
+    { id: 'R', latex: '\\R', tooltip: 'pi (pi)', icon: '\\R' },
+    { id: 'C', latex: '\\C', tooltip: 'pi (pi)', icon: '\\C' },
+    { id: 'vert', latex: '\\vert', tooltip: 'such that (vert)', icon: '|' },
+    { id: 'cup', latex: '\\cup', tooltip: 'union (union)', icon: '\\cup' },
+    { id: 'cap', latex: '\\cap', tooltip: 'intersection', icon: '\\cap' },
+    { id: 'neq', latex: '\\leq', tooltip: 'not equal (neq)', icon: '\\neq' },
+    { id: 'leq', latex: '\\leq', tooltip: 'less than or equal (<=)', icon: '\\leq' },
+    { id: 'geq', latex: '\\geq', tooltip: 'greater than or equal (>=)', icon: '\\geq' },
+    { id: 'lim', latex: '\\lim', tooltip: '', icon: '\\lim' },
+    { id: 'rightarrow', latex: '\\rightarrow', tooltip: '', icon: '\\rightarrow' },
+    { id: 'text', latex: '\\text', tooltip: 'text mode (")', icon: 'Tt' },
+];
+
+function toolbarGen(answerQuill) {    
+    var toolbar = $("<div class='quill-toolbar' data-id='" + answerQuill.attr('id') + "' style='height:75%; overflow-y:auto'>" +
+    toolbarButtons.reduce(
+        function(returnString, curButton) {
+            return returnString +
+            "<a id='" + curButton.id + "-" + answerQuill.attr('id') +
+            "' class='symbol-button btn' " +
+            "' data-latex='" + curButton.latex +
+            "' data-tooltip='" + curButton.tooltip + "'>" +
+            "<span class='button-icons' id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
+            + curButton.icon +
+            "</span>" +
+            "</a>";
+        }, ""
+    ) + "</div>");
+
+    return toolbar;
 }
 
 function latexGen() {
   var clone = document.getElementById('editor').cloneNode(true);
 
   var oldElems = clone.getElementsByClassName("latex");
-  // var oldElems = document.getElementById('s' + slideIndex).getElementsByClassName("latexSource");
 
   for(var i = oldElems.length - 1; i >= 0; i--) {
 	  var oldElem = oldElems.item(i);
