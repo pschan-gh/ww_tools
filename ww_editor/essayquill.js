@@ -88,7 +88,7 @@ function editorInit() {
         html = html.replace(/\\\(.*?\\\)/, mathNode);
         mqID++;
     }
-    $('#editor').html(html.replace(/\n\n+/g, '<br/>'));
+    $('#editor').html(html.replace(/\\newline+/g, '<br/>'));
 
     $('span.mathbox').each(function() {
         var mq = $(this).find('.mq').first()[0];
@@ -245,13 +245,13 @@ function latexGen() {
   }
   $(clone).find('.mathbox').remove();    
   $('textarea.latexentryfield').val($(clone).html()
-  .replace(/\<(\/)*(p|div|br)\>/g, "\n\n")
+  .replace(/\<(\/)*(p|div|br)\>/g, '\\newline')
   .replace(/&gt;/g, ">")
   .replace(/&lt;/g, "<")
   .replace(/&amp;/g, "&")
-  .replace(/\n\n\n+/g, "\n\n")
+  .replace(/\n\n\n+/g, '\\newline')
   .replace(/&nbsp;/g, ' ')
-  .replace(/\n */g, "\n"));    
+  .replace(/\n */g, " "));    
   $('input[type="submit"]').show();
 }
 
