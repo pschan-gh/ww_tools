@@ -79,12 +79,12 @@ function setCaret(x, yNode, html) {
 function editorInit() {
     html = $('textarea.latexentryfield').val();
     mqID = 0;
-    mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>&nbsp;&nbsp;';
+    mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>';
     var latex;
     while (html.match(/\\\(.*?\\\)/g)) {
         latex = html.match(/\\\((.*?)\\\)/)[1];
         console.log(latex);
-        mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '">' + latex + '</span></span>&nbsp;&nbsp;';
+        mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '">' + latex + '</span></span>';
         html = html.replace(/\\\(.*?\\\)/, mathNode);
         mqID++;
     }
@@ -247,7 +247,15 @@ function latexGen() {
 	  var parentElem = oldElem.parentNode.parentNode;
 	  var innerElem;
 
-	  var textNode = document.createTextNode("\\(" + oldElem.textContent + "\\)");
+      var text;
+      console.log(oldElem);
+      if ($(oldElem).find('script[type="math/tex; mode=display"]').length) {
+          text = "\\(" + $(oldElem).find('script[type="math/tex; mode=display"]').first().text() + "\\)";
+      } else {
+          text = "\\(" + oldElem.textContent + "\\)";
+      }
+      console.log(text);
+      var textNode = document.createTextNode(text);
 	  parentElem.insertBefore(textNode, oldElem.parentNode);
   }
   $(clone).find('.mathbox').remove();    
@@ -255,6 +263,7 @@ function latexGen() {
   .replace(/\<(\/)*(p|div|br)\>/g, "\n\n")
   .replace(/&gt;/g, ">")
   .replace(/&lt;/g, "<")
+  .replace(/&amp;/g, "&")
   .replace(/\n\n\n+/g, "\n\n")
   .replace(/&nbsp;/g, ' ')
   .replace(/\n */g, "\n"));    
