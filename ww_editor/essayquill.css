@@ -1,3 +1,18 @@
+.quill-toolbar .symbol-button {
+    display:inline-block;
+    width:50px;
+}
+
+.quill-toolbar {
+    font-size: .75em;
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-55%);
+    right: 10px;
+    width:100px;
+    height:50%;
+}
 
 .latex {
     display:none;
@@ -13,10 +28,11 @@
 
 .mathbox {
     display:inline-block;
-    border:solid 2px #d88;
+    border:solid 2px #fbb;
     border-radius:3px;
     margin-left: 1px;
     margin-right: 1px;
+    padding:2px;
 }
 
 .mathbox.infocus {

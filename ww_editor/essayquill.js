@@ -2,6 +2,8 @@ var mqID = 0;
 var activeMathbox;
 var caretX;
 
+$.widget.bridge('uitooltip', $.ui.tooltip);
+
 // http://jsfiddle.net/timdown/jwvha/527/
 function pasteHtmlAtCaret(html) {
     var sel, range;
@@ -115,10 +117,26 @@ function mqInit(mq, latex) {
 
     let localMathField = MQ.MathField(mq, {
         spaceBehavesLikeTab: true, // configurable
+        leftRightIntoCmdGoes: 'up',
+		restrictMismatchedBrackets: true,
+		sumStartsWithNEquals: true,
+		supSubsRequireOperand: true,
+		autoCommands: 'pi sqrt union abs',
+		rootsAreExponents: true,
+		maxDepth: 10,
         handlers: {
             edit: function() { // useful event handlers
                 $('#editor').find('.latex[data-mq="' + $(mq).attr('data-mq') + '"]').text(localMathField.latex()); // simple API
                 // asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
+            },
+            textBlockEnter: function() {
+			if (answerQuill.toolbar)
+				answerQuill.toolbar.find("button").prop("disabled", true);
+            },
+            // Re-enable the toolbar when a text block is exited.
+            textBlockExit: function() {
+                if (answerQuill.toolbar)
+                answerQuill.toolbar.find("button").prop("disabled", false);
             }
         }
     });
@@ -157,8 +175,20 @@ function mqInit(mq, latex) {
             answerQuill.toolbar.appendTo($('#output_problem_body').first());            
             answerQuill.toolbar.find(".button-icons").each(function() {
                 MQ.StaticMath(this);
-            });            
+            });
         }
+        
+        $(".symbol-button").uitooltip( {
+			items: "[data-tooltip]",
+			position: {my: "right center", at: "left-5px center"},
+			show: {delay: 500, effect: "none"},
+			hide: {delay: 0, effect: "none"},
+			content: function() {
+				var element = $(this);
+				if (element.prop("disabled")) return;
+				if (element.is("[data-tooltip]")) { return element.attr("data-tooltip"); }
+			}
+		});
         
         answerQuill.toolbar.find(".symbol-button").off();
         answerQuill.toolbar.find(".symbol-button").on("click", function() {
@@ -204,7 +234,7 @@ var toolbarButtons = [
 ];
 
 function toolbarGen(answerQuill) {    
-    var toolbar = $("<div class='quill-toolbar' data-id='" + answerQuill.attr('id') + "' style='height:75%; overflow-y:auto'>" +
+    var toolbar = $("<div class='quill-toolbar' data-id='" + answerQuill.attr('id') + "'>" +
     toolbarButtons.reduce(
         function(returnString, curButton) {
             return returnString +
@@ -245,11 +275,11 @@ function latexGen() {
   }
   $(clone).find('.mathbox').remove();    
   $('textarea.latexentryfield').val($(clone).html()
-  .replace(/\<(\/)*(p|div|br)\>/g, '\\newline')
+  .replace(/\<(\/)*(p|div|br)\>/g, '<br/>')
+  .replace(/\n\n\n+/g, '<br/>')
   .replace(/&gt;/g, ">")
   .replace(/&lt;/g, "<")
-  .replace(/&amp;/g, "&")
-  .replace(/\n\n\n+/g, '\\newline')
+  .replace(/&amp;/g, "&")  
   .replace(/&nbsp;/g, ' ')
   .replace(/\n */g, " "));    
   $('input[type="submit"]').show();
