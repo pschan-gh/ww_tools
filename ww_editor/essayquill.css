@@ -30,9 +30,9 @@
     display:inline-block;
     border:solid 2px #fbb;
     border-radius:3px;
-    margin-left: 1px;
-    margin-right: 1px;
-    padding:2px;
+    margin-left: 2px;
+    margin-right: 2px;
+    /* padding:2px; */
 }
 
 .mathbox.infocus {

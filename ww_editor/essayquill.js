@@ -2,7 +2,6 @@ var mqID = 0;
 var activeMathbox;
 var caretX;
 
-$.widget.bridge('uitooltip', $.ui.tooltip);
 
 // http://jsfiddle.net/timdown/jwvha/527/
 function pasteHtmlAtCaret(html) {
@@ -81,12 +80,12 @@ function setCaret(x, yNode, html) {
 function editorInit() {
     html = $('textarea.latexentryfield').val();
     mqID = 0;
-    mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>';
+    mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '"></span></span>';
     var latex;
     while (html.match(/\\\(.*?\\\)/g)) {
         latex = html.match(/\\\((.*?)\\\)/)[1];
         console.log(latex);
-        mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '">' + latex + '</span></span>';
+        mathNode = '<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '">' + latex + '</span></span>';
         html = html.replace(/\\\(.*?\\\)/, mathNode);
         mqID++;
     }
@@ -178,6 +177,7 @@ function mqInit(mq, latex) {
             });
         }
         
+        answerQuill.toolbar.find(".symbol-button").off();
         $(".symbol-button").uitooltip( {
 			items: "[data-tooltip]",
 			position: {my: "right center", at: "left-5px center"},
@@ -189,8 +189,7 @@ function mqInit(mq, latex) {
 				if (element.is("[data-tooltip]")) { return element.attr("data-tooltip"); }
 			}
 		});
-        
-        answerQuill.toolbar.find(".symbol-button").off();
+                
         answerQuill.toolbar.find(".symbol-button").on("click", function() {
             answerQuill.hasFocus = true;
             answerQuill.mathField.cmd(this.getAttribute("data-latex"));
@@ -207,30 +206,31 @@ function mqInit(mq, latex) {
 var toolbarButtons = [
     { id: 'frac', latex: '/', tooltip: 'fraction (/)', icon: '\\frac{\\text{\ \ }}{\\text{\ \ }}' },
     { id: 'abs', latex: '|', tooltip: 'absolute value (|)', icon: '|\\text{\ \ }|' },
-    { id: 'sqrt', latex: '\\sqrt', tooltip: 'square root (sqrt)', icon: '\\sqrt{\\text{\ \ }}' },
-    { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
+    { id: 'sqrt', latex: '\\sqrt', tooltip: '(\\sqrt) space', icon: '\\sqrt{\\text{\ \ }}' },
+    { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (\\root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
     { id: 'exponent', latex: '^', tooltip: 'exponent (^)', icon: '\\text{\ \ }^\\text{\ \ }' },
     { id: 'subscript', latex: '_', tooltip: 'subscript (_)', icon: '\\text{\ \ }_\\text{\ \ }' },
-    { id: 'vector', latex: '\\vec', tooltip: 'vector (\\vec)', icon: '\\vec{\ \ }' },
-    { id: 'matrix', latex: '\\pmatrix', tooltip: 'matrix (\\pmatrix)', icon: '\\pmatrix{& \\\\ & }' },
-    { id: 'infty', latex: '\\infty', tooltip: 'infinity (inf)', icon: '\\infty' },
-    { id: 'pi', latex: '\\pi', tooltip: 'pi (pi)', icon: '\\pi' },
-    { id: 'in', latex: '\\in', tooltip: 'in (in)', icon: '\\in' },
-    { id: 'notin', latex: '\\notin', tooltip: 'notin (notin)', icon: '\\notin' },
-    { id: 'subseteq', latex: '\\subseteq', tooltip: 'subseteq (setseteq)', icon: '\\subseteq' },
-    { id: 'Z', latex: '\\Z', tooltip: 'pi (pi)', icon: '\\Z' },
-    { id: 'Q', latex: '\\Q', tooltip: 'pi (pi)', icon: '\\Q' },
-    { id: 'R', latex: '\\R', tooltip: 'pi (pi)', icon: '\\R' },
-    { id: 'C', latex: '\\C', tooltip: 'pi (pi)', icon: '\\C' },
-    { id: 'vert', latex: '\\vert', tooltip: 'such that (vert)', icon: '|' },
-    { id: 'cup', latex: '\\cup', tooltip: 'union (union)', icon: '\\cup' },
-    { id: 'cap', latex: '\\cap', tooltip: 'intersection', icon: '\\cap' },
-    { id: 'neq', latex: '\\leq', tooltip: 'not equal (neq)', icon: '\\neq' },
-    { id: 'leq', latex: '\\leq', tooltip: 'less than or equal (<=)', icon: '\\leq' },
-    { id: 'geq', latex: '\\geq', tooltip: 'greater than or equal (>=)', icon: '\\geq' },
-    { id: 'lim', latex: '\\lim', tooltip: '', icon: '\\lim' },
-    { id: 'rightarrow', latex: '\\rightarrow', tooltip: '', icon: '\\rightarrow' },
-    { id: 'text', latex: '\\text', tooltip: 'text mode (")', icon: 'Tt' },
+    { id: 'vector', latex: '\\vec', tooltip: '(\\vec) space', icon: '\\vec{\ \ }' },
+    // { id: 'matrix', latex: '\\pmatrix', tooltip: '(\\pmatrix) space', icon: 'matrix' },
+    { id: 'matrix', latex: '\\pmatrix', tooltip: '(\\pmatrix) space', icon: '\\begin{pmatrix} \ \\end{pmatrix}' },
+    { id: 'infty', latex: '\\infty', tooltip: '(\\infty) space', icon: '\\infty' },
+    { id: 'pi', latex: '\\pi', tooltip: '(\\pi) space', icon: '\\pi' },
+    { id: 'in', latex: '\\in', tooltip: '(\\in) space', icon: '\\in' },
+    { id: 'notin', latex: '\\notin', tooltip: '(\\notin) space', icon: '\\notin' },
+    { id: 'subseteq', latex: '\\subseteq', tooltip: '(\\setseteq) space', icon: '\\subseteq' },
+    { id: 'Z', latex: '\\Z', tooltip: '(\\Z) space', icon: '\\Z' },
+    { id: 'Q', latex: '\\Q', tooltip: '(\\Q) space', icon: '\\Q' },
+    { id: 'R', latex: '\\R', tooltip: '(\\R) space', icon: '\\R' },
+    { id: 'C', latex: '\\C', tooltip: '(\\C) space', icon: '\\C' },
+    { id: 'vert', latex: '\\vert', tooltip: 'such that (\\vert) space', icon: '|' },
+    { id: 'cup', latex: '\\cup', tooltip: '(\\cup) space', icon: '\\cup' },
+    { id: 'cap', latex: '\\cap', tooltip: '(\\cap) space', icon: '\\cap' },
+    { id: 'neq', latex: '\\leq', tooltip: '(\\neq) space', icon: '\\neq' },
+    { id: 'leq', latex: '\\leq', tooltip: '(<=)', icon: '\\leq' },
+    { id: 'geq', latex: '\\geq', tooltip: '(>=)', icon: '\\geq' },
+    { id: 'lim', latex: '\\lim', tooltip: '(\\lim) space', icon: '\\lim' },
+    { id: 'rightarrow', latex: '\\rightarrow', tooltip: '(\\rightarrow) space', icon: '\\rightarrow' },
+    { id: 'text', latex: '\\text', tooltip: 'text mode (\\text) space, <br/> tab to end', icon: 'Tt' },
 ];
 
 function toolbarGen(answerQuill) {    
@@ -242,9 +242,9 @@ function toolbarGen(answerQuill) {
             "' class='symbol-button btn' " +
             "' data-latex='" + curButton.latex +
             "' data-tooltip='" + curButton.tooltip + "'>" +
-            "<span class='button-icons' id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
+            "<div class='button-icons' id='icon-" + curButton.id + "-" + answerQuill.attr('id') + "'>"
             + curButton.icon +
-            "</span>" +
+            "</div>" +
             "</a>";
         }, ""
     ) + "</div>");
@@ -332,5 +332,5 @@ $(function() {
             }
         }
     });
-    
+    $.widget.bridge('uitooltip', $.ui.tooltip);
 });
