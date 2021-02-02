@@ -43,20 +43,6 @@
     /* border:solid 2px #d88; */
 }
 
-
-#editor {
-    position:absolute;
-    top:35px;
-    left:10px;
-    margin:auto;
-    margin-top:2%;
-    width:95%;
-    height:95%;
-    overflow-y:auto;
-    border: solid 2px #ddd;
-    font-family:serif;
-}
-
 textarea.latexentryfield {
     font-family:monospace;
 }

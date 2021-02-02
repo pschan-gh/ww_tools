@@ -1,33 +1,18 @@
 <html>
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" integrity="sha256-Z0FmvP1JtDmwVaHpsgu75FrC/SInDnlFWL95M65PCr4=" crossorigin="anonymous" />
-    
-     
-    <!-- <link rel="stylesheet" href="learnosity/mathquill.css"/> -->
-     
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js" integrity="sha256-dxKVPdWCaZTdphHQqQEc0GSDAVZJCxshwn3ZrvHtqgo=" crossorigin="anonymous"></script> -->
-    
-    <script src="learnosity/mathquill.js"/>
-    
-    <script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/ww_test/AMtoMQlite.js"></script>
-    
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+  <!-- <link rel="stylesheet" src="https://www.math.cuhk.edu.hk/~pschan/learnosity/mathquill.css"/> -->
+  <!-- <link rel="stylesheet" href="https://www.math.cuhk.edu.hk/~pschan/ww_test/essayquill.css"/> -->
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
-<script>
-MathJax = {
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']]
-  }
-};
-</script>
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/learnosity/mathquill.js"></script> -->
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" integrity="sha256-Z0FmvP1JtDmwVaHpsgu75FrC/SInDnlFWL95M65PCr4=" crossorigin="anonymous" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js" integrity="sha256-dxKVPdWCaZTdphHQqQEc0GSDAVZJCxshwn3ZrvHtqgo=" crossorigin="anonymous"></script> -->
+  <!-- <script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/ww_test/AMtoMQlite.js"></script> -->
+  
+  <script type="text/javascript" src="https://www.math.cuhk.edu.hk/~pschan/learnosity/mathquill.js"></script>
+  
 <style>
 #math-field {
     font-size:2em;
@@ -74,103 +59,13 @@ MathJax = {
     margin-right: 5px;
 }
 
-/* .quill-toolbar
-{
-    font-size: .75em;
-    display: inline-block;
-    position: fixed;
-    top: 50%;
-    transform: translateY(-55%);
-    right: 10px;
-} */
-
-.quill-toolbar
-{
-    font-size: .75em;
-    display: inline-block;
-    position: absolute;
-    top: 0;
-    /* transform: translateY(-55%); */
-    left: 0;
-    width:100%;
+table.mq-non-leaf > tbody > tr > td {
+    padding:5px;
+    border: solid 1px #bbb;
 }
 
-
-.quill-toolbar .symbol-button
-{
-    box-sizing: border-box;
-    /* width: 50px; */
-    text-align: center;
-    padding: 3px;
-    margin: 0;
-    /* display: block; */
-    /* width: 100%; */
-    border-top: 0;
-    border-radius: 0;
-}
-
-.quill-toolbar .symbol-button:first-child
-{
-    border-top: 1px solid #cccccc;
-    border-radius: 4px 4px 0 0;
-}
-
-.quill-toolbar .symbol-button:last-child
-{
-    border-radius: 0 0 4px 4px;
-}
-
-.quill-toolbar > .symbol-button:focus,
-.quill-toolbar > .symbol-button.ui-visual-focus
-{
-    z-index: 9999;
-}
-
-.quill-toolbar .symbol-button .ui-button-text
-{
-    padding: 0;
-}
-
-.quill-toolbar .symbol-button span[id^=icon-]:hover
-{
-    cursor: pointer;
-}
-
-.quill-toolbar .symbol-button:not([id^="text-mq-answer"]) .mq-text-mode
-{
-    height: 10px;
-    width: 8px;
-    transform: translateY(2px);
-    background-color: skyblue !important;
-}
-
-.quill-toolbar .symbol-button .mq-nthroot > .mq-text-mode,
-.quill-toolbar .symbol-button .mq-sup > .mq-text-mode,
-.quill-toolbar .symbol-button .mq-sub > .mq-text-mode
-{
-    height: 6px;
-    width: 6px;
-}
-
-.quill-toolbar .symbol-button .mq-sup > .mq-text-mode
-{
-    transform: translateY(2px);
-}
-
-.quill-toolbar .symbol-button .mq-sub > .mq-text-mode
-{
-    transform: translateY(0px);
-}
-
-.quill-toolbar .symbol-button .mq-supsub
-{
-    height: 6px;
-    width: 6px;
-    margin-left: 2px;
-}
-
-.btn {
-    margin:5px;
+.mq-non-leaf :not(.mq-supsub, .mq-scaled){
+    vertical-align:middle !important;
 }
 
 #editor {
@@ -312,7 +207,7 @@ function latexGen() {
 document.getElementById("mathquill").onclick = function() {
     $(this).hide();
     document.getElementById('editor').focus();
-    pasteHtmlAtCaret('<span class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></span>&nbsp;&nbsp;');
+    pasteHtmlAtCaret('<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></div>&nbsp;&nbsp;');
     $('#mq' + mqID).click(function() {
         var mq = this;
         let localMathField = MQ.MathField(this, {
