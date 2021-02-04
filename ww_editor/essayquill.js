@@ -95,7 +95,7 @@ function editorInit() {
         $('#editor').html(html.replace(/\\newline+/g, '<br/>'));
     }
 
-    $('span.mathbox').each(function() {
+    $('div.mathbox').each(function() {
         var mq = $(this).find('.mq').first()[0];
         var latex = $(this).find('.latex').first().text();
         latex = latex.replace(/\\mathbb{([a-z])}/ig,"\\$1");
