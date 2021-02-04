@@ -338,7 +338,7 @@ $(function() {
                 console.log(auxBox);
                 console.log(auxBox.nextSibling);
                 var nextTextNode = document.createTextNode(" ");
-                auxBox.nextSibling.after(nextTextNode);
+                auxBox.after(nextTextNode);
                 setCaret(0, nextTextNode, 'new text');
                 // if (auxBox.nextSibling != null && 
                 //     typeof auxBox.nextSibling != undefined && 
