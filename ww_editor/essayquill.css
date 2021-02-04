@@ -27,6 +27,7 @@
 }
 
 .mathbox {
+    position:relative;
     display:inline-block;
     border:solid 2px #fbb;
     border-radius:3px;
@@ -45,4 +46,17 @@
 
 textarea.latexentryfield {
     font-family:monospace;
+}
+
+.delete {
+    font-size:smaller;
+    border:2px solid #ddd;
+    border-radius:10px;
+    padding:0px 2px;
+    display:none;
+    background-color:rgba(255, 200, 200, 0.5);
+    position:absolute;
+    left:-1.25em;
+    top:-0.5em;
+    color:#f00;
 }
