@@ -3,7 +3,9 @@ var activeMathbox = null;
 var auxBox = null;
 var mqID = 0;
 
-$.widget.bridge('uitooltip', $.ui.tooltip);
+if ($.widget != null && typeof $.widge != 'undefined') {
+    $.widget.bridge('uitooltip', $.ui.tooltip);
+}
 
 // http://jsfiddle.net/timdown/jwvha/527/
 function pasteHtmlAtCaret(html) {
@@ -47,7 +49,7 @@ function pasteHtmlAtCaret(html) {
 }
 
 // https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
-function setCaret(x, yNode, html) {
+function setCaret(x, yNode, html, select) {
     var range = document.createRange();
     var sel = window.getSelection();
     
@@ -66,13 +68,15 @@ function setCaret(x, yNode, html) {
     range.insertNode(frag);
     
     // Preserve the selection
-    if (lastNode) {
-        range = range.cloneRange();
-        range.setStartAfter(lastNode);                
-        range.setStartBefore(firstNode);
-    } else {
-        range.setStart(yNode, x);
-        range.collapse(true);            
+    if (select) {
+        if (lastNode) {
+            range = range.cloneRange();
+            range.setStartAfter(lastNode);                
+            range.setStartBefore(firstNode);
+        } else {
+            range.setStart(yNode, x);
+            range.collapse(true);            
+        }
     }
     sel.removeAllRanges();
     sel.addRange(range);
@@ -82,13 +86,13 @@ function setCaret(x, yNode, html) {
 function editorInit() {
     html = $('textarea.latexentryfield').val();
     mqID = 0;
-    // mathNode = '<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="delete">&times;</span><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '"></span></div>';
+    // mathNode = '<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="delete" contenteditable="false">&times;</span><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '" contenteditable="false"></span></div>';
     var latex;
     if (html != null && typeof html != 'undefined') {
         while (html.match(/\\\(.*?\\\)/g)) {
             latex = html.match(/\\\((.*?)\\\)/)[1];
             console.log(latex);
-            mathNode = '<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><div class="delete">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '">' + latex + '</span></div>';
+            mathNode = '<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><div class="delete" contenteditable="false">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '" contenteditable="false"></span><span class="latex tex2jax_ignore" data-mq="' + mqID + '" contenteditable="false">' + latex + '</span></div>';
             html = html.replace(/\\\(.*?\\\)/, mathNode);
             mqID++;
         }
@@ -106,7 +110,7 @@ function editorInit() {
     document.getElementById("mathquill").onclick = function() {
         // $(this).hide();
         document.getElementById('editor').focus();
-        pasteHtmlAtCaret('<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><div class="delete">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '"></span><span class="latex" data-mq="' + mqID + '"></span></div>&nbsp;&nbsp;');
+        pasteHtmlAtCaret('<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="latex tex2jax_ignore" data-mq="' + mqID + '" contenteditable="false"></span><div class="delete" contenteditable="false">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '" contenteditable="false"></span></div>&nbsp;&nbsp;');
         $('#mq' + mqID).off();        
         mqInit($('#mq' + mqID)[0]);
         $('#mq' + mqID).mousedown().mouseup();
@@ -130,6 +134,7 @@ function mqInit(mq, latex) {
         handlers: {
             edit: function() { // useful event handlers
                 $('#editor').find('.latex[data-mq="' + $(mq).attr('data-mq') + '"]').text(localMathField.latex()); // simple API
+                $(mq).attr('data-latex', localMathField.latex());
                 // asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
             },
             textBlockEnter: function() {
@@ -181,9 +186,11 @@ function mqInit(mq, latex) {
         $(activeMathbox).find('.delete').css('display', 'inline-block');
         $(activeMathbox).find('.delete').off();
         $(activeMathbox).find('.delete').click(function() {
-            activeMathbox.remove();
-            activeMathbox = null;
-            auxBox = null;
+            if (window.confirm("Delete this math box?")) {
+                auxBox.remove();
+                activeMathbox = null;
+                auxBox = null;
+            }
         });
         
         if (!answerQuill.toolbar) {
@@ -271,9 +278,28 @@ function toolbarGen(answerQuill) {
 }
 
 function latexGen() {
+
   var clone = document.getElementById('editor').cloneNode(true);
 
-  var oldElems = clone.getElementsByClassName("latex");
+//   var oldElems = clone.getElementsByClassName("latex");
+
+//   for(var i = oldElems.length - 1; i >= 0; i--) {
+// 	  var oldElem = oldElems.item(i);
+// 	  var parentElem = oldElem.parentNode.parentNode;
+// 	  var innerElem;
+
+//       var text;
+//       console.log(oldElem);
+//       if ($(oldElem).find('script[type="math/tex; mode=display"]').length) {
+//           text = "\\(" + $(oldElem).find('script[type="math/tex; mode=display"]').first().text() + "\\)";
+//       } else {
+//           text = "\\(" + oldElem.textContent + "\\)";
+//       }
+//       console.log(text);
+//       var textNode = document.createTextNode(text);
+// 	  parentElem.insertBefore(textNode, oldElem.parentNode);
+//   }
+var oldElems = clone.getElementsByClassName("mq");
 
   for(var i = oldElems.length - 1; i >= 0; i--) {
 	  var oldElem = oldElems.item(i);
@@ -282,10 +308,10 @@ function latexGen() {
 
       var text;
       console.log(oldElem);
-      if ($(oldElem).find('script[type="math/tex; mode=display"]').length) {
-          text = "\\(" + $(oldElem).find('script[type="math/tex; mode=display"]').first().text() + "\\)";
+      if ($(oldElem).find('.latex').length) {
+          text = "\\(" + $(oldElem).find('.latex').text() + "\\)";
       } else {
-          text = "\\(" + oldElem.textContent + "\\)";
+          text = "\\(" + $(oldElem).attr('data-latex') + "\\)";
       }
       console.log(text);
       var textNode = document.createTextNode(text);
@@ -303,6 +329,40 @@ function latexGen() {
   $('input[type="submit"]').show();
 }
 
+function exitMathbox() {
+    if (auxBox == null || typeof auxBox == 'undefined') {
+        return 0;
+    }
+    $('#editor').focus();
+    if (window.getSelection) {
+        // IE9 and non-IE
+        sel = window.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            range = sel.getRangeAt(0);                    
+        }
+    }
+    // var currentNode = range.endContainer;
+    // console.log(currentNode);
+    console.log(auxBox);
+    console.log(auxBox.nextSibling);
+    var nextTextNode = document.createTextNode(" ");
+    auxBox.after(nextTextNode);    
+    setCaret(1, nextTextNode, 'new text', true);
+    // if (auxBox.nextSibling != null && 
+    //     typeof auxBox.nextSibling != undefined && 
+    //     auxBox.nextSibling.nodeType == 3) {
+    //     console.log(auxBox.nextSibling);
+    //     var nextTextNode = document.createTextNode(" ");
+    //     auxBox.nextSibling.after(nextTextNode);
+    //     setCaret(0, nextTextNode, 'new text');
+    // } else {
+    //     console.log("adding text node");
+    //     var $node = $(document.createTextNode(" ")).appendTo($('#editor'));
+    //     console.log($node[0]);
+    //     setCaret(0, $node[0], 'new text');
+    // }
+    auxBox = null;    
+}
 
 $(function() {
     activeMathbox = null;
@@ -314,48 +374,19 @@ $(function() {
     editorInit();
     $("textarea.latexentryfield").prop('readonly', true);
     
+    $('#exit_mathquill').click(function() {
+        exitMathbox();
+    });
+    
     $('#editor').keypress(function(event) {
         if (event.which === 96) {
             event.preventDefault();
-            // if (auxBox == null) {
             if (!$('.mq.infocus').length) {
                 console.log('CREATING MATHBOX');
                 $('#mathquill').click();
-            } else {                
-                // if (!$('.mq.infocus').length) {
-                //     return true;
-                // }
-                $('#editor').focus();
-                if (window.getSelection) {
-                    // IE9 and non-IE
-                    sel = window.getSelection();
-                    if (sel.getRangeAt && sel.rangeCount) {
-                        range = sel.getRangeAt(0);                    
-                    }
-                }
-                // var currentNode = range.endContainer;
-                // console.log(currentNode);
-                console.log(auxBox);
-                console.log(auxBox.nextSibling);
-                var nextTextNode = document.createTextNode(" ");
-                auxBox.after(nextTextNode);
-                setCaret(0, nextTextNode, 'new text');
-                // if (auxBox.nextSibling != null && 
-                //     typeof auxBox.nextSibling != undefined && 
-                //     auxBox.nextSibling.nodeType == 3) {
-                //     console.log(auxBox.nextSibling);
-                //     var nextTextNode = document.createTextNode(" ");
-                //     auxBox.nextSibling.after(nextTextNode);
-                //     setCaret(0, nextTextNode, 'new text');
-                // } else {
-                //     console.log("adding text node");
-                //     var $node = $(document.createTextNode(" ")).appendTo($('#editor'));
-                //     console.log($node[0]);
-                //     setCaret(0, $node[0], 'new text');
-                // }
-                auxBox = null;
-            }
-    
+            } else {    
+                exitMathbox();                            
+            }    
         }
     });
     // $('#editor').keyup(function(event) {
