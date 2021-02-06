@@ -41,31 +41,6 @@ function getCaretPosition(editableDiv) {
             }
             return caretOffset;
         }
-// https://stackoverflow.com/questions/3972014/get-contenteditable-caret-index-position
-// function getCaretPosition(editableDiv) {
-//   var caretPos = 0,
-//     sel, range;
-//   if (window.getSelection) {
-//     sel = window.getSelection();
-//     if (sel.rangeCount) {
-//       range = sel.getRangeAt(0);
-//       if (range.commonAncestorContainer.parentNode == editableDiv) {
-//         caretPos = range.endOffset;
-//       }
-//     }
-//   } else if (document.selection && document.selection.createRange) {
-//     range = document.selection.createRange();
-//     if (range.parentElement() == editableDiv) {
-//       var tempEl = document.createElement("span");
-//       editableDiv.insertBefore(tempEl, editableDiv.firstChild);
-//       var tempRange = range.duplicate();
-//       tempRange.moveToElementText(tempEl);
-//       tempRange.setEndPoint("EndToEnd", range);
-//       caretPos = tempRange.text.length;
-//     }
-//   }
-//   return caretPos;
-// }
 
 function pasteHtmlAtCaret(html) {
     
@@ -76,14 +51,11 @@ function pasteHtmlAtCaret(html) {
     var caretPos = getCaretPosition(editableDiv);
     console.log(caretPos);
     var  text = editableDiv.firstChild;
-    var wholeText = editableDiv.wholeText;
-    // var  text = editableDiv.firstChild;
-    // var tail = text.splitText(caretPos).nextSibling.textContent;
-    // var head = editableDiv.firstChild.textContent;
-    try {
-        var wholeText = editableDiv.firstChild.wholeText;
-    } catch (error) {
-        var wholeText = '';
+    
+    var wholeText = editableDiv.firstChild.wholeText;
+    
+    if (wholeText == null || typeof wholeText == 'undefined') {
+        wholeText = '';
     }
     var head = wholeText.substr(0, caretPos);
     var tail = wholeText.substr(caretPos, wholeText.length);
@@ -104,90 +76,23 @@ function pasteHtmlAtCaret(html) {
     }
 }
 
+//https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
+function setCaretPosition(el, caretPos) {
 
-// http://jsfiddle.net/timdown/jwvha/527/
-// function pasteHtmlAtCaret(html) {
-//     var sel, range;
-//     if (window.getSelection) {
-//         // IE9 and non-IE
-//         sel = window.getSelection();
-//         if (sel.getRangeAt && sel.rangeCount) {
-//             range = sel.getRangeAt(0);
-// 
-//             range.deleteContents();
-// 
-//             // Range.createContextualFragment() would be useful here but is
-//             // only relatively recently standardized and is not supported in
-//             // some browsers (IE9, for one)
-//             var el = document.createElement("div");
-//             el.innerHTML = html;
-//             var frag = document.createDocumentFragment(), node, lastNode;
-//             while ( (node = el.firstChild) ) {
-//                 lastNode = frag.appendChild(node);
-//             }
-//             var firstNode = frag.firstChild;
-// 
-//             range.insertNode(frag);
-// 
-//             // Preserve the selection
-//             if (lastNode) {
-//                 range = range.cloneRange();
-//                 range.setStartAfter(lastNode);                
-//                 range.collapse(true);
-//                 sel.removeAllRanges();
-//                 sel.addRange(range);
-//             }
-//         }
-//     } else if ( (sel = document.selection) && sel.type != "Control") {
-//         // IE < 9
-//         var originalRange = sel.createRange();
-//         originalRange.collapse(true);
-//         sel.createRange().pasteHTML(html);
-//     }
-// }
-
-// https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
-function setCaret(x, yNode, html, select) {
     var range = document.createRange();
     var sel = window.getSelection();
     
-     range.setStart(yNode, x);
+    range.setStart(el.childNodes[0], caretPos);
+    range.collapse(true);
     
-    //
-    
-    var el = document.createElement("div");
-    el.innerHTML = html;
-    var frag = document.createDocumentFragment(), node, lastNode;
-    while ( (node = el.firstChild) ) {
-        lastNode = frag.appendChild(node);
-    }
-    var firstNode = frag.firstChild;
-    
-    range.insertNode(frag);
-    
-    // Preserve the selection
-    if (select) {
-        if (lastNode) {
-            range = range.cloneRange();
-            range.setStartAfter(lastNode);                
-            range.setStartBefore(firstNode);
-        } else {
-            range.setStart(yNode, x);
-            range.collapse(true);            
-        }
-    }
     sel.removeAllRanges();
     sel.addRange(range);
-    highLightText();
 }
 
 function highLightText() {
-    $('#editor').find('.text').each(function() {
-        $('#editor').find('.text').removeClass('highlight');
-        if ($(this).text().length) {
-            $(this).addClass('highlight');
-        }
-    });
+    $('#editor').find('.text').removeClass('highlight');
+    $('#editor').find('.text').last().addClass('highlight');    
+    $('#editor').find('.text').first().addClass('highlight'); 
 }
 
 function editorInit() {
@@ -203,8 +108,9 @@ function editorInit() {
             html = html.replace(/\\\(.*?\\\)/, mathNode);
             mqID++;
         }
+        html = html == '' ? '<div class="text" contenteditable>&nbsp;&nbsp;</div>' : html;
         $('#editor').html(
-            '<div class="text" contenteditable>&nbsp;&nbsp;</div>' + 
+            // '<div class="text" contenteditable>&nbsp;&nbsp;</div>' + 
             html.replace(/\\newline+/g, '<br/>' + 
             '<div class="text" contenteditable> </div>'
         ));
@@ -410,25 +316,7 @@ function latexGen() {
 
   var clone = document.getElementById('editor').cloneNode(true);
 
-  // $(clone).find('#anchor').remove();
-//   var oldElems = clone.getElementsByClassName("latex");
 
-//   for(var i = oldElems.length - 1; i >= 0; i--) {
-// 	  var oldElem = oldElems.item(i);
-// 	  var parentElem = oldElem.parentNode.parentNode;
-// 	  var innerElem;
-
-//       var text;
-//       console.log(oldElem);
-//       if ($(oldElem).find('script[type="math/tex; mode=display"]').length) {
-//           text = "\\(" + $(oldElem).find('script[type="math/tex; mode=display"]').first().text() + "\\)";
-//       } else {
-//           text = "\\(" + oldElem.textContent + "\\)";
-//       }
-//       console.log(text);
-//       var textNode = document.createTextNode(text);
-// 	  parentElem.insertBefore(textNode, oldElem.parentNode);
-//   }
 var oldElems = clone.getElementsByClassName("mq");
 
   for(var i = oldElems.length - 1; i >= 0; i--) {
@@ -477,27 +365,11 @@ function exitMathbox() {
             range = sel.getRangeAt(0);                    
         }
     }
-    // var currentNode = range.endContainer;
-    // console.log(currentNode);
     console.log(auxBox);
     console.log(auxBox.nextSibling);
-    // var nextTextNode = document.createTextNode(" ");
-    // var nextTextNode = $('<div class="text" contenteditable> </div>')[0];
-    // auxBox.after(nextTextNode);    
-    setCaret(1, auxBox.nextSibling, 'New Text', true);
-    // if (auxBox.nextSibling != null && 
-    //     typeof auxBox.nextSibling != undefined && 
-    //     auxBox.nextSibling.nodeType == 3) {
-    //     console.log(auxBox.nextSibling);
-    //     var nextTextNode = document.createTextNode(" ");
-    //     auxBox.nextSibling.after(nextTextNode);
-    //     setCaret(0, nextTextNode, 'new text');
-    // } else {
-    //     console.log("adding text node");
-    //     var $node = $(document.createTextNode(" ")).appendTo($('#editor'));
-    //     console.log($node[0]);
-    //     setCaret(0, $node[0], 'new text');
-    // }
+
+    setCaretPosition(auxBox.nextSibling, 0);
+    
     auxBox = null;    
 }
 
@@ -526,66 +398,25 @@ $(function() {
             }    
         }
     });
-    // $('#editor').keyup(function(event) {
-    //     if (event.keyCode === 192) {
-    //         event.preventDefault();
-    //         if (activeMathbox == null) {
-    //             $('#mathquill').click();
-    //         } else {
-    //             if (!$('.mq.infocus').length) {
-    //                 return true;
-    //             }
-    //             event.preventDefault();
-    //             $('#editor').focus();
-    //             if (window.getSelection) {
-    //                 // IE9 and non-IE
-    //                 sel = window.getSelection();
-    //                 if (sel.getRangeAt && sel.rangeCount) {
-    //                     range = sel.getRangeAt(0);                    
-    //                 }
-    //             }
-    //             // var currentNode = range.endContainer;
-    //             // console.log(currentNode);
-    //             console.log(activeMathbox);
-    //             if (activeMathbox.nextSibling != null && typeof activeMathbox.nextSibling != undefined) {
-    //                 console.log(activeMathbox.nextSibling);
-    //                 setCaret(0, activeMathbox.nextSibling, '');
-    //             } else {
-    //                 console.log("adding text node");
-    //                 var $node = $(document.createTextNode(" ")).appendTo($('#editor'));
-    //                 console.log($node[0]);
-    //                 setCaret(0, $node[0], 'new text');
-    //             }
-    //         }
-    //     }
-        // if (event.keyCode === 27) {
-        //     if (!$('.mq.infocus').length) {
-        //         return true;
-        //     }
-        //     event.preventDefault();
-        //     $('#editor').focus();
-        //     if (window.getSelection) {
-        //         // IE9 and non-IE
-        //         sel = window.getSelection();
-        //         if (sel.getRangeAt && sel.rangeCount) {
-        //             range = sel.getRangeAt(0);                    
-        //         }
-        //     }
-        //     // var currentNode = range.endContainer;
-        //     // console.log(currentNode);
-        //     console.log(activeMathbox);
-        //     if (activeMathbox.nextSibling != null && typeof activeMathbox.nextSibling != undefined) {
-        //         console.log(activeMathbox.nextSibling);
-        //         setCaret(0, activeMathbox.nextSibling, '');
-        //     } else {
-        //         console.log("adding text node");
-        //         var $node = $(document.createTextNode(" ")).appendTo($('#editor'));
-        //         console.log($node[0]);
-        //         setCaret(0, $node[0], 'new text');
-        //     }
-        // }
-    // });
-    $('#editor').click(function() {
-        highLightText();
+
+    $('#editor').click(function(event) {
+        if (!$(event.target).hasClass('text') && !$(event.target).closest('.mq').length) {
+            highLightText();
+            if ( $('#editor').find('.text').length ) {
+                $('#editor').find('.text').last().focus();
+                if ($('#editor').find('.text').last().text().length == 0) {
+                    $('#editor').find('.text').last().html("&nbsp;&nbsp;");
+                }
+                if ($('#editor').find('.text').first().text().length == 0) {
+                    $('#editor').find('.text').first().html("&nbsp;&nbsp;");
+                }
+            } else {
+                $('#editor').append('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
+            }
+            if ( !$('#editor').children().first().hasClass('text')) {
+                $('#editor').prepend('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
+            }
+        }
     });
+    
 });
