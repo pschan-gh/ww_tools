@@ -204,10 +204,26 @@ function editorInit() {
             mqID++;
         }
         $('#editor').html(
-            '<div class="text" contenteditable> </div>' + 
+            '<div class="text" contenteditable>&nbsp;&nbsp;</div>' + 
             html.replace(/\\newline+/g, '<br/>' + 
             '<div class="text" contenteditable> </div>'
         ));
+        // https://stackoverflow.com/questions/10730309/find-all-text-nodes-in-html-page
+        var node = $('#editor')[0].firstChild;
+        var failsafe = 0;
+        while(node && failsafe < 1000){
+            if (node.nodeType==3) {
+                console.log(node.textContent);
+                $(node).before('<div class="text" contenteditable>' + node.textContent + '</div>');
+                $aux = $(node);
+                node = node.nextSibling;
+                console.log(node);
+                $aux.remove();
+            } else {
+                node = node.nextSibling;
+            }
+            failsafe++;
+        }
     }
 
     $('div.mathbox').each(function() {
@@ -569,4 +585,7 @@ $(function() {
         //     }
         // }
     // });
+    $('#editor').click(function() {
+        highLightText();
+    });
 });

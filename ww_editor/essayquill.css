@@ -57,6 +57,15 @@ textarea.latexentryfield {
     background-color:rgba(255, 200, 200, 0.5);
     position:absolute;
     left:-1.25em;
-    top:-0.5em;
+    top:-1em;
     color:#f00;
+}
+
+.text {
+    display:inline-block;
+}
+
+.text.highlight {
+    border:1px solid #ddd;
+    border-radius:5px;
 }
