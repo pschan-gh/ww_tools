@@ -7,46 +7,144 @@ if ($.widget != null && typeof $.widge != 'undefined') {
     $.widget.bridge('uitooltip', $.ui.tooltip);
 }
 
-// http://jsfiddle.net/timdown/jwvha/527/
-function pasteHtmlAtCaret(html) {
-    var sel, range;
-    if (window.getSelection) {
-        // IE9 and non-IE
-        sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            range = sel.getRangeAt(0);
-            
-            range.deleteContents();
-            
-            // Range.createContextualFragment() would be useful here but is
-            // only relatively recently standardized and is not supported in
-            // some browsers (IE9, for one)
-            var el = document.createElement("div");
-            el.innerHTML = html;
-            var frag = document.createDocumentFragment(), node, lastNode;
-            while ( (node = el.firstChild) ) {
-                lastNode = frag.appendChild(node);
+// https://stackoverflow.com/questions/31093285/how-do-i-get-the-element-being-edited
+function getActiveDiv() {
+    var sel = window.getSelection();
+    var range = sel.getRangeAt(0);
+    var node = document.createElement('span');
+    range.insertNode(node);
+    range = range.cloneRange();
+    range.selectNodeContents(node);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var activeDiv = node.parentNode;
+    node.parentNode.removeChild(node);
+    return activeDiv;
+}
+
+// https://www.codeproject.com/Questions/703255/How-to-get-caret-index-of-an-editable-div-with-res
+function getCaretPosition(editableDiv) {
+           var caretOffset = 0;
+           if (typeof window.getSelection != "undefined") {
+                var range = window.getSelection().getRangeAt(0);
+                var preCaretRange = range.cloneRange();
+                preCaretRange.selectNodeContents(editableDiv);
+                preCaretRange.setEnd(range.endContainer, range.endOffset);
+                caretOffset = preCaretRange.toString().length;
+            } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
+                var textRange = document.selection.createRange();
+                var preCaretTextRange = document.body.createTextRange();
+                preCaretTextRange.moveToElementText(editableDiv);
+                preCaretTextRange.setEndPoint("EndToEnd", textRange);
+                caretOffset = preCaretTextRange.text.length;
             }
-            var firstNode = frag.firstChild;
-            
-            range.insertNode(frag);
-            
-            // Preserve the selection
-            if (lastNode) {
-                range = range.cloneRange();
-                range.setStartAfter(lastNode);                
-                range.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
+            return caretOffset;
         }
-    } else if ( (sel = document.selection) && sel.type != "Control") {
-        // IE < 9
-        var originalRange = sel.createRange();
-        originalRange.collapse(true);
-        sel.createRange().pasteHTML(html);
+// https://stackoverflow.com/questions/3972014/get-contenteditable-caret-index-position
+// function getCaretPosition(editableDiv) {
+//   var caretPos = 0,
+//     sel, range;
+//   if (window.getSelection) {
+//     sel = window.getSelection();
+//     if (sel.rangeCount) {
+//       range = sel.getRangeAt(0);
+//       if (range.commonAncestorContainer.parentNode == editableDiv) {
+//         caretPos = range.endOffset;
+//       }
+//     }
+//   } else if (document.selection && document.selection.createRange) {
+//     range = document.selection.createRange();
+//     if (range.parentElement() == editableDiv) {
+//       var tempEl = document.createElement("span");
+//       editableDiv.insertBefore(tempEl, editableDiv.firstChild);
+//       var tempRange = range.duplicate();
+//       tempRange.moveToElementText(tempEl);
+//       tempRange.setEndPoint("EndToEnd", range);
+//       caretPos = tempRange.text.length;
+//     }
+//   }
+//   return caretPos;
+// }
+
+function pasteHtmlAtCaret(html) {
+    
+    var editableDiv = getActiveDiv();
+    console.log(editableDiv);
+    var previousNode = editableDiv.previousSibling;
+    console.log(previousNode);
+    var caretPos = getCaretPosition(editableDiv);
+    console.log(caretPos);
+    var  text = editableDiv.firstChild;
+    var wholeText = editableDiv.wholeText;
+    // var  text = editableDiv.firstChild;
+    // var tail = text.splitText(caretPos).nextSibling.textContent;
+    // var head = editableDiv.firstChild.textContent;
+    try {
+        var wholeText = editableDiv.firstChild.wholeText;
+    } catch (error) {
+        var wholeText = '';
+    }
+    var head = wholeText.substr(0, caretPos);
+    var tail = wholeText.substr(caretPos, wholeText.length);
+    console.log(head);
+    console.log(tail);
+    if (tail.length == 0) {
+        tail = '&nbsp;&nbsp;';
+    }
+    var $newNode = $('<div class="text" contenteditable>' + head + '</div>' 
+                      + html 
+                      + '<div class="text" contenteditable>' + tail + '</div>' 
+                  );
+    editableDiv.remove();
+    if (previousNode != null && typeof previousNode != 'undefined') {
+        $newNode.insertAfter($(previousNode));
+    } else {
+        $('#editor').append($newNode);
     }
 }
+
+
+// http://jsfiddle.net/timdown/jwvha/527/
+// function pasteHtmlAtCaret(html) {
+//     var sel, range;
+//     if (window.getSelection) {
+//         // IE9 and non-IE
+//         sel = window.getSelection();
+//         if (sel.getRangeAt && sel.rangeCount) {
+//             range = sel.getRangeAt(0);
+// 
+//             range.deleteContents();
+// 
+//             // Range.createContextualFragment() would be useful here but is
+//             // only relatively recently standardized and is not supported in
+//             // some browsers (IE9, for one)
+//             var el = document.createElement("div");
+//             el.innerHTML = html;
+//             var frag = document.createDocumentFragment(), node, lastNode;
+//             while ( (node = el.firstChild) ) {
+//                 lastNode = frag.appendChild(node);
+//             }
+//             var firstNode = frag.firstChild;
+// 
+//             range.insertNode(frag);
+// 
+//             // Preserve the selection
+//             if (lastNode) {
+//                 range = range.cloneRange();
+//                 range.setStartAfter(lastNode);                
+//                 range.collapse(true);
+//                 sel.removeAllRanges();
+//                 sel.addRange(range);
+//             }
+//         }
+//     } else if ( (sel = document.selection) && sel.type != "Control") {
+//         // IE < 9
+//         var originalRange = sel.createRange();
+//         originalRange.collapse(true);
+//         sel.createRange().pasteHTML(html);
+//     }
+// }
 
 // https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
 function setCaret(x, yNode, html, select) {
@@ -80,7 +178,16 @@ function setCaret(x, yNode, html, select) {
     }
     sel.removeAllRanges();
     sel.addRange(range);
-    
+    highLightText();
+}
+
+function highLightText() {
+    $('#editor').find('.text').each(function() {
+        $('#editor').find('.text').removeClass('highlight');
+        if ($(this).text().length) {
+            $(this).addClass('highlight');
+        }
+    });
 }
 
 function editorInit() {
@@ -96,7 +203,11 @@ function editorInit() {
             html = html.replace(/\\\(.*?\\\)/, mathNode);
             mqID++;
         }
-        $('#editor').html(html.replace(/\\newline+/g, '<br/>'));
+        $('#editor').html(
+            '<div class="text" contenteditable> </div>' + 
+            html.replace(/\\newline+/g, '<br/>' + 
+            '<div class="text" contenteditable> </div>'
+        ));
     }
 
     $('div.mathbox').each(function() {
@@ -110,7 +221,7 @@ function editorInit() {
     document.getElementById("mathquill").onclick = function() {
         // $(this).hide();
         document.getElementById('editor').focus();
-        pasteHtmlAtCaret('<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="latex tex2jax_ignore" data-mq="' + mqID + '" contenteditable="false"></span><div class="delete" contenteditable="false">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '" contenteditable="false"></span></div>&nbsp;&nbsp;');
+        pasteHtmlAtCaret('<div class="mathbox" id="mathbox'+ mqID + '" contenteditable="false" data-mq="' + mqID + '"><span class="latex tex2jax_ignore" data-mq="' + mqID + '" contenteditable="false"></span><div class="delete" contenteditable="false">&times;</div><span class="mq"  id="mq'+ mqID + '" data-mq="' + mqID + '" contenteditable="false"></span></div>');
         $('#mq' + mqID).off();        
         mqInit($('#mq' + mqID)[0]);
         $('#mq' + mqID).mousedown().mouseup();
@@ -118,6 +229,8 @@ function editorInit() {
         return true;
     };
     $('#mathquill').show();
+    
+    highLightText();
 }
 
 function mqInit(mq, latex) {
@@ -225,7 +338,7 @@ function mqInit(mq, latex) {
     $('.mq').removeClass('infocus');
     $(mq).addClass('infocus');
     $(activeMathbox).addClass('infocus');
-    
+
 }
 
 var toolbarButtons = [
@@ -281,6 +394,7 @@ function latexGen() {
 
   var clone = document.getElementById('editor').cloneNode(true);
 
+  // $(clone).find('#anchor').remove();
 //   var oldElems = clone.getElementsByClassName("latex");
 
 //   for(var i = oldElems.length - 1; i >= 0; i--) {
@@ -314,18 +428,24 @@ var oldElems = clone.getElementsByClassName("mq");
           text = "\\(" + $(oldElem).attr('data-latex') + "\\)";
       }
       console.log(text);
-      var textNode = document.createTextNode(text);
+      // var textNode = document.createTextNode(text);
+      var textNode = $('<span class="latex">' + text + '</span>')[0];
 	  parentElem.insertBefore(textNode, oldElem.parentNode);
   }
-  $(clone).find('.mathbox').remove();    
-  $('textarea.latexentryfield').val($(clone).html()
-  .replace(/\<(\/)*(p|div|br)\>/g, '<br/>')
-  .replace(/\n\n\n+/g, '<br/>')
-  .replace(/&gt;/g, ">")
-  .replace(/&lt;/g, "<")
-  .replace(/&amp;/g, "&")  
-  .replace(/&nbsp;/g, ' ')
-  .replace(/\n */g, " "));    
+  var html = '';
+  $(clone).find('.mathbox').remove();
+  $(clone).children().each(function() {
+      html += $(this).text();
+  });
+  $('textarea.latexentryfield').val(html);
+  // $('textarea.latexentryfield').val($(clone).html()
+  // // .replace(/\<(\/)*(p|div|br)\>/g, '<br/>')
+  // .replace(/\n\n\n+/g, '<br/>')
+  // .replace(/&gt;/g, ">")
+  // .replace(/&lt;/g, "<")
+  // .replace(/&amp;/g, "&")  
+  // .replace(/&nbsp;/g, ' ')
+  // .replace(/\n */g, " "));    
   $('input[type="submit"]').show();
 }
 
@@ -345,9 +465,10 @@ function exitMathbox() {
     // console.log(currentNode);
     console.log(auxBox);
     console.log(auxBox.nextSibling);
-    var nextTextNode = document.createTextNode(" ");
-    auxBox.after(nextTextNode);    
-    setCaret(1, nextTextNode, 'new text', true);
+    // var nextTextNode = document.createTextNode(" ");
+    // var nextTextNode = $('<div class="text" contenteditable> </div>')[0];
+    // auxBox.after(nextTextNode);    
+    setCaret(1, auxBox.nextSibling, 'New Text', true);
     // if (auxBox.nextSibling != null && 
     //     typeof auxBox.nextSibling != undefined && 
     //     auxBox.nextSibling.nodeType == 3) {
