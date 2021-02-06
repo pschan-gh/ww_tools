@@ -367,7 +367,9 @@ function exitMathbox() {
     }
     console.log(auxBox);
     console.log(auxBox.nextSibling);
-
+    if (!$(auxBox.nextSibling).hasClass('text') || !auxBox.nextSibling.textContent.length) {
+        $(auxBox).after('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
+    }
     setCaretPosition(auxBox.nextSibling, 0);
     
     auxBox = null;    
@@ -403,13 +405,13 @@ $(function() {
         if (!$(event.target).hasClass('text') && !$(event.target).closest('.mq').length) {
             highLightText();
             if ( $('#editor').find('.text').length ) {
-                $('#editor').find('.text').last().focus();
                 if ($('#editor').find('.text').last().text().length == 0) {
                     $('#editor').find('.text').last().html("&nbsp;&nbsp;");
                 }
                 if ($('#editor').find('.text').first().text().length == 0) {
                     $('#editor').find('.text').first().html("&nbsp;&nbsp;");
                 }
+                $('#editor').find('.text').last().focus();                
             } else {
                 $('#editor').append('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
             }
