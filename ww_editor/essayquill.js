@@ -46,10 +46,10 @@ function getCaretPosition(editableDiv) {
 function pasteHtmlAtCaret(html) {
     
     // var editableDiv = getActiveDiv();
-    if (!$('#editor').find(':focus').length) {
+    if (!$('#editor').find('.text.highlight').length) {
         return 0;
     }
-    var editableDiv = $('#editor').find(':focus').first()[0];    
+    var editableDiv = $('#editor').find('.text.highlight').first()[0];    
     // console.log(editableDiv);
     var previousNode = editableDiv.previousSibling;
     console.log(previousNode);
@@ -79,6 +79,10 @@ function pasteHtmlAtCaret(html) {
         $('#editor').append($newNode);
     }
     $('.text.highlight').focus();
+    $('.text').off();
+    $('.text').each(function() {
+        textInit(this);
+    });
 }
 
 //https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
@@ -135,6 +139,10 @@ function editorInit() {
             }
             failsafe++;
         }
+        $('.text').off();
+        $('.text').each(function() {
+            textInit(this);
+        });
     }
     
     $('div.mathbox').each(function() {
@@ -153,6 +161,10 @@ function editorInit() {
         mqInit($('#mq' + mqID)[0]);
         $('#mq' + mqID).mousedown().mouseup();
         mqID++;
+        $('.text').off();
+        $('.text').each(function() {
+            textInit(this);
+        });
         return true;
     };
     $('#mathquill').show();
@@ -230,7 +242,7 @@ function mqInit(mq, latex) {
                 if ($(auxBox).prev('.text').length) {
                     var $text = $(auxBox).prev('.text').first();
                     auxBox.remove();
-                    mergeText($text[0]);
+                    mergeText($text[0]);                    
                 } else {
                     auxBox.remove();
                 }
@@ -323,6 +335,13 @@ function toolbarGen(answerQuill) {
     return toolbar;
 }
 
+function textInit(element) {
+    $(element).on('focusin', function() {
+        $('.text.highlight').removeClass('highlight');
+        $(this).addClass('highlight');
+    });
+}
+
 function newline() {
     pasteHtmlAtCaret('</br>');
 }
@@ -338,6 +357,10 @@ function mergeText(element) {
         $(element).text( $(element).text() + $next.text() );
         $next.remove();
     }
+    $('.text').off();
+    $('.text').each(function() {
+        textInit(this);
+    });
 }
 
 function latexGen() {
@@ -401,6 +424,10 @@ function exitMathbox() {
     console.log(auxBox.nextSibling);
     if (!$(auxBox.nextSibling).hasClass('text') || !auxBox.nextSibling.textContent.length) {
         $(auxBox).after('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
+        $('.text').off();
+        $('.text').each(function() {
+            textInit(this);
+        });
     }
     setCaretPosition(auxBox.nextSibling, 0);
     
@@ -485,6 +512,10 @@ $(function() {
             if ( !$('#editor').children().first().hasClass('text')) {
                 $('#editor').prepend('<div class="text" contenteditable>&nbsp;&nbsp;</div>');
             }
+            $('.text').off();
+            $('.text').each(function() {
+                textInit(this);
+            });
         }
     });
     
