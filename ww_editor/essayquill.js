@@ -45,8 +45,12 @@ function getCaretPosition(editableDiv) {
 
 function pasteHtmlAtCaret(html) {
     
-    var editableDiv = getActiveDiv();
-    console.log(editableDiv);
+    // var editableDiv = getActiveDiv();
+    if (!$('#editor').find(':focus').length) {
+        return 0;
+    }
+    var editableDiv = $('#editor').find(':focus').first()[0];    
+    // console.log(editableDiv);
     var previousNode = editableDiv.previousSibling;
     console.log(previousNode);
     var caretPos = getCaretPosition(editableDiv);
@@ -60,13 +64,11 @@ function pasteHtmlAtCaret(html) {
     }
     var head = wholeText.substr(0, caretPos);
     var tail = wholeText.substr(caretPos, wholeText.length);
-    console.log(head);
-    console.log(tail);
     if (tail.length == 0) {
         tail = '&nbsp;&nbsp;';
     }
     $('.text').removeClass('highlight');
-    var $newNode = $('<div class="text" contenteditable>' + head + '</div>' 
+    var $newNode = $('<div class="text" contenteditable>' + head.trim() + '</div>' 
     + html 
     + '<div class="text highlight" contenteditable>' + tail + '</div>' 
     );
@@ -123,7 +125,7 @@ function editorInit() {
         while(node && failsafe < 1000){
             if (node.nodeType==3) {
                 console.log(node.textContent);
-                $(node).before('<div class="text" contenteditable>' + node.textContent + '</div>');
+                $(node).before('<div class="text" contenteditable>' + node.textContent.trim() + '</div>');
                 $aux = $(node);
                 node = node.nextSibling;
                 console.log(node);
@@ -429,15 +431,39 @@ $(function() {
                 exitMathbox();                            
             }    
         }
-    });
-    
-    $('#editor').on('keypress',function(e) {
-        if(e.which == 13) {
+        if(event.which == 13) {
             event.preventDefault();
             if ($('.text:focus').length) {
+                var $currentNode = $('.text:focus').first();
                 newline();
             } else {
                 return 0;
+            }
+        }      
+    });
+
+    $('#editor').on('keydown',function(e) {
+        if(e.which == 8) {
+            if ($('.text:focus').length) {
+                var $activeText = $('.text:focus').first();
+                // console.log(getCaretPosition($activeText[0]));
+                if (getCaretPosition($activeText[0]) == 0) {
+                    event.preventDefault();
+                    if ($activeText.prev().length) {
+                        if ($activeText.prev().is('br')) {
+                            var prevNode = $activeText.prev().prev()[0];
+                            var prevContentLength = $(prevNode).text().length;
+                            if ($(prevNode).hasClass('text')) {
+                                $activeText.prev().remove();
+                                mergeText(prevNode);
+                            } else {
+                                $activeText.prev().remove();
+                            }
+                            $(prevNode).focus();
+                            setCaretPosition(prevNode, prevContentLength);
+                        }                        
+                    }
+                }
             }
         }
     });
