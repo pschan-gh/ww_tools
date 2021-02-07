@@ -2,10 +2,11 @@ var caretX;
 var activeMathbox = null;
 var auxBox = null;
 var mqID = 0;
-
-if ($.widget != null && typeof $.widge != 'undefined') {
-    $.widget.bridge('uitooltip', $.ui.tooltip);
-}
+// 
+// if ($.widget != null && typeof $.widget != 'undefined') {
+// 
+// }
+$.widget.bridge('uitooltip', $.ui.tooltip);
 
 // https://stackoverflow.com/questions/31093285/how-do-i-get-the-element-being-edited
 function getActiveDiv() {
@@ -25,22 +26,22 @@ function getActiveDiv() {
 
 // https://www.codeproject.com/Questions/703255/How-to-get-caret-index-of-an-editable-div-with-res
 function getCaretPosition(editableDiv) {
-           var caretOffset = 0;
-           if (typeof window.getSelection != "undefined") {
-                var range = window.getSelection().getRangeAt(0);
-                var preCaretRange = range.cloneRange();
-                preCaretRange.selectNodeContents(editableDiv);
-                preCaretRange.setEnd(range.endContainer, range.endOffset);
-                caretOffset = preCaretRange.toString().length;
-            } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
-                var textRange = document.selection.createRange();
-                var preCaretTextRange = document.body.createTextRange();
-                preCaretTextRange.moveToElementText(editableDiv);
-                preCaretTextRange.setEndPoint("EndToEnd", textRange);
-                caretOffset = preCaretTextRange.text.length;
-            }
-            return caretOffset;
-        }
+    var caretOffset = 0;
+    if (typeof window.getSelection != "undefined") {
+        var range = window.getSelection().getRangeAt(0);
+        var preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(editableDiv);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preCaretRange.toString().length;
+    } else if (typeof document.selection != "undefined" && document.selection.type != "Control") {
+        var textRange = document.selection.createRange();
+        var preCaretTextRange = document.body.createTextRange();
+        preCaretTextRange.moveToElementText(editableDiv);
+        preCaretTextRange.setEndPoint("EndToEnd", textRange);
+        caretOffset = preCaretTextRange.text.length;
+    }
+    return caretOffset;
+}
 
 function pasteHtmlAtCaret(html) {
     
@@ -64,21 +65,23 @@ function pasteHtmlAtCaret(html) {
     if (tail.length == 0) {
         tail = '&nbsp;&nbsp;';
     }
+    $('.text').removeClass('highlight');
     var $newNode = $('<div class="text" contenteditable>' + head + '</div>' 
-                      + html 
-                      + '<div class="text" contenteditable>' + tail + '</div>' 
-                  );
+    + html 
+    + '<div class="text highlight" contenteditable>' + tail + '</div>' 
+    );
     editableDiv.remove();
     if (previousNode != null && typeof previousNode != 'undefined') {
         $newNode.insertAfter($(previousNode));
     } else {
         $('#editor').append($newNode);
     }
+    $('.text.highlight').focus();
 }
 
 //https://stackoverflow.com/questions/6249095/how-to-set-caretcursor-position-in-contenteditable-element-div
 function setCaretPosition(el, caretPos) {
-
+    
     var range = document.createRange();
     var sel = window.getSelection();
     
@@ -131,7 +134,7 @@ function editorInit() {
             failsafe++;
         }
     }
-
+    
     $('div.mathbox').each(function() {
         var mq = $(this).find('.mq').first()[0];
         var latex = $(this).find('.latex').first().text();
@@ -156,16 +159,16 @@ function editorInit() {
 }
 
 function mqInit(mq, latex) {
-
+    
     let localMathField = MQ.MathField(mq, {
         spaceBehavesLikeTab: true, // configurable
         leftRightIntoCmdGoes: 'up',
-		restrictMismatchedBrackets: true,
-		sumStartsWithNEquals: true,
-		supSubsRequireOperand: true,
-		autoCommands: 'pi sqrt union abs',
-		rootsAreExponents: true,
-		maxDepth: 10,
+        restrictMismatchedBrackets: true,
+        sumStartsWithNEquals: true,
+        supSubsRequireOperand: true,
+        autoCommands: 'pi sqrt union abs',
+        rootsAreExponents: true,
+        maxDepth: 10,
         handlers: {
             edit: function() { // useful event handlers
                 $('#editor').find('.latex[data-mq="' + $(mq).attr('data-mq') + '"]').text(localMathField.latex()); // simple API
@@ -173,8 +176,8 @@ function mqInit(mq, latex) {
                 // asciimathSpan.value = MQtoAM(mathField.latex()); // simple API
             },
             textBlockEnter: function() {
-			if (answerQuill.toolbar)
-				answerQuill.toolbar.find("button").prop("disabled", true);
+                if (answerQuill.toolbar)
+                answerQuill.toolbar.find("button").prop("disabled", true);
             },
             // Re-enable the toolbar when a text block is exited.
             textBlockExit: function() {
@@ -183,14 +186,14 @@ function mqInit(mq, latex) {
             }
         }
     });
-
+    
     var answerQuill = $(mq);
     
     answerQuill.mathField = localMathField ;
     if (latex) {
         answerQuill.mathField.latex(latex);
     }
-
+    
     answerQuill.textarea = answerQuill.find("textarea");
     
     answerQuill.textarea.on('focusout', function() {
@@ -222,7 +225,13 @@ function mqInit(mq, latex) {
         $(activeMathbox).find('.delete').off();
         $(activeMathbox).find('.delete').click(function() {
             if (window.confirm("Delete this math box?")) {
-                auxBox.remove();
+                if ($(auxBox).prev('.text').length) {
+                    var $text = $(auxBox).prev('.text').first();
+                    auxBox.remove();
+                    mergeText($text[0]);
+                } else {
+                    auxBox.remove();
+                }
                 activeMathbox = null;
                 auxBox = null;
             }
@@ -238,16 +247,16 @@ function mqInit(mq, latex) {
         
         answerQuill.toolbar.find(".symbol-button").off();
         $(".symbol-button").uitooltip( {
-			items: "[data-tooltip]",
-			position: {my: "right center", at: "left-5px center"},
-			show: {delay: 500, effect: "none"},
-			hide: {delay: 0, effect: "none"},
-			content: function() {
-				var element = $(this);
-				if (element.prop("disabled")) return;
-				if (element.is("[data-tooltip]")) { return element.attr("data-tooltip"); }
-			}
-		});
+            items: "[data-tooltip]",
+            position: {my: "right center", at: "left-5px center"},
+            show: {delay: 500, effect: "none"},
+            hide: {delay: 0, effect: "none"},
+            content: function() {
+                var element = $(this);
+                if (element.prop("disabled")) return;
+                if (element.is("[data-tooltip]")) { return element.attr("data-tooltip"); }
+            }
+        });
         answerQuill.toolbar.find(".symbol-button").on("click", function() {            
             answerQuill.hasFocus = true;
             answerQuill.mathField.cmd(this.getAttribute("data-latex"));
@@ -260,37 +269,37 @@ function mqInit(mq, latex) {
     $('.mq').removeClass('infocus');
     $(mq).addClass('infocus');
     $(activeMathbox).addClass('infocus');
-
+    
 }
 
 var toolbarButtons = [
     { id: 'frac', latex: '/', tooltip: 'fraction (/)', icon: '\\frac{\\text{\ \ }}{\\text{\ \ }}' },
     { id: 'abs', latex: '|', tooltip: 'absolute value (|)', icon: '|\\text{\ \ }|' },
-    { id: 'sqrt', latex: '\\sqrt', tooltip: '(\\sqrt) space', icon: '\\sqrt{\\text{\ \ }}' },
+    { id: 'sqrt', latex: '\\sqrt', tooltip: '(\\sqrt)<br/>tab to execute/end', icon: '\\sqrt{\\text{\ \ }}' },
     { id: 'nthroot', latex: '\\nthroot', tooltip: 'nth root (\\root)', icon: '\\sqrt[\\text{\ \ }]{\\text{\ \ }}' },
     { id: 'exponent', latex: '^', tooltip: 'exponent (^)', icon: '\\text{\ \ }^\\text{\ \ }' },
     { id: 'subscript', latex: '_', tooltip: 'subscript (_)', icon: '\\text{\ \ }_\\text{\ \ }' },
-    { id: 'vector', latex: '\\vec', tooltip: 'vector (\\vec) space', icon: '\\vec{v}' },
-    // { id: 'matrix', latex: '\\pmatrix', tooltip: '(\\pmatrix) space', icon: 'matrix' },
-    { id: 'matrix', latex: '\\pmatrix', tooltip: 'matrix (\\pmatrix) space<br/>Shift-Spacebar adds column<br/>Shift-Enter adds row.<br/>Backspace on a cell in empty row/column deletes row/column.', icon: '\\begin{pmatrix} \ \\end{pmatrix}' },
-    { id: 'infty', latex: '\\infty', tooltip: '(\\infty) space', icon: '\\infty' },
-    { id: 'pi', latex: '\\pi', tooltip: '(\\pi) space', icon: '\\pi' },
-    { id: 'in', latex: '\\in', tooltip: '(\\in) space', icon: '\\in' },
-    { id: 'notin', latex: '\\notin', tooltip: '(\\notin) space', icon: '\\notin' },
-    { id: 'subseteq', latex: '\\subseteq', tooltip: '(\\setseteq) space', icon: '\\subseteq' },
-    { id: 'Z', latex: '\\Z', tooltip: '(\\Z) space', icon: '\\Z' },
-    { id: 'Q', latex: '\\Q', tooltip: '(\\Q) space', icon: '\\Q' },
-    { id: 'R', latex: '\\R', tooltip: '(\\R) space', icon: '\\R' },
-    { id: 'C', latex: '\\C', tooltip: '(\\C) space', icon: '\\C' },
-    { id: 'vert', latex: '\\vert', tooltip: 'such that (\\vert) space', icon: '|' },
-    { id: 'cup', latex: '\\cup', tooltip: '(\\cup) space', icon: '\\cup' },
-    { id: 'cap', latex: '\\cap', tooltip: '(\\cap) space', icon: '\\cap' },
-    { id: 'neq', latex: '\\leq', tooltip: '(\\neq) space', icon: '\\neq' },
+    { id: 'vector', latex: '\\vec', tooltip: 'vector (\\vec) <br/>tab to execute/end', icon: '\\vec{v}' },
+    // { id: 'matrix', latex: '\\pmatrix', tooltip: '(\\pmatrix) <br/>tab to execute/end', icon: 'matrix' },
+    { id: 'matrix', latex: '\\pmatrix', tooltip: 'matrix (\\pmatrix) <br/>tab to execute/end<br/>Shift-Spacebar adds column<br/>Shift-Enter adds row.<br/>Backspace on a cell in empty row/column deletes row/column.', icon: '\\begin{pmatrix} \ \\end{pmatrix}' },
+    { id: 'infty', latex: '\\infty', tooltip: '(\\infty) <br/>tab to execute/end', icon: '\\infty' },
+    { id: 'pi', latex: '\\pi', tooltip: '(\\pi) <br/>tab to execute/end', icon: '\\pi' },
+    { id: 'in', latex: '\\in', tooltip: '(\\in) <br/>tab to execute/end', icon: '\\in' },
+    { id: 'notin', latex: '\\notin', tooltip: '(\\notin) <br/>tab to execute/end', icon: '\\notin' },
+    { id: 'subseteq', latex: '\\subseteq', tooltip: '(\\setseteq) <br/>tab to execute/end', icon: '\\subseteq' },
+    { id: 'Z', latex: '\\Z', tooltip: '(\\Z) <br/>tab to execute/end', icon: '\\Z' },
+    { id: 'Q', latex: '\\Q', tooltip: '(\\Q) <br/>tab to execute/end', icon: '\\Q' },
+    { id: 'R', latex: '\\R', tooltip: '(\\R) <br/>tab to execute/end', icon: '\\R' },
+    { id: 'C', latex: '\\C', tooltip: '(\\C) <br/>tab to execute/end', icon: '\\C' },
+    { id: 'vert', latex: '\\vert', tooltip: 'such that (\\vert) <br/>tab to execute/end', icon: '|' },
+    { id: 'cup', latex: '\\cup', tooltip: '(\\cup) <br/>tab to execute/end', icon: '\\cup' },
+    { id: 'cap', latex: '\\cap', tooltip: '(\\cap) <br/>tab to execute/end', icon: '\\cap' },
+    { id: 'neq', latex: '\\leq', tooltip: '(\\neq) <br/>tab to execute/end', icon: '\\neq' },
     { id: 'leq', latex: '\\leq', tooltip: '(<=)', icon: '\\leq' },
     { id: 'geq', latex: '\\geq', tooltip: '(>=)', icon: '\\geq' },
-    { id: 'lim', latex: '\\lim', tooltip: '(\\lim) space', icon: '\\lim' },
-    { id: 'rightarrow', latex: '\\rightarrow', tooltip: '(\\rightarrow) space', icon: '\\rightarrow' },
-    { id: 'text', latex: '\\text', tooltip: 'text mode (\\text) space, <br/> tab to end', icon: 'Tt' },
+    { id: 'lim', latex: '\\lim', tooltip: '(\\lim) <br/>tab to execute/end', icon: '\\lim' },
+    { id: 'rightarrow', latex: '\\rightarrow', tooltip: '(\\rightarrow) <br/>tab to execute/end', icon: '\\rightarrow' },
+    { id: 'text', latex: '\\text', tooltip: 'text mode (\\text) <br/>tab to execute/end', icon: 'Tt' },
 ];
 
 function toolbarGen(answerQuill) {    
@@ -308,49 +317,70 @@ function toolbarGen(answerQuill) {
             "</a>";
         }, ""
     ) + "</div>");
-
+    
     return toolbar;
 }
 
+function newline() {
+    pasteHtmlAtCaret('</br>');
+}
+
+function mergeText(element) {
+    
+    if (!$(element).hasClass('text')) {
+        return 0;
+    }
+    
+    if ($(element).next('.text').length) {
+        $next = $(element).next('.text').first();
+        $(element).text( $(element).text() + $next.text() );
+        $next.remove();
+    }
+}
+
 function latexGen() {
-
-  var clone = document.getElementById('editor').cloneNode(true);
-
-
-var oldElems = clone.getElementsByClassName("mq");
-
-  for(var i = oldElems.length - 1; i >= 0; i--) {
-	  var oldElem = oldElems.item(i);
-	  var parentElem = oldElem.parentNode.parentNode;
-	  var innerElem;
-
-      var text;
-      console.log(oldElem);
-      if ($(oldElem).find('.latex').length) {
-          text = "\\(" + $(oldElem).find('.latex').text() + "\\)";
-      } else {
-          text = "\\(" + $(oldElem).attr('data-latex') + "\\)";
-      }
-      console.log(text);
-      // var textNode = document.createTextNode(text);
-      var textNode = $('<span class="latex">' + text + '</span>')[0];
-	  parentElem.insertBefore(textNode, oldElem.parentNode);
-  }
-  var html = '';
-  $(clone).find('.mathbox').remove();
-  $(clone).children().each(function() {
-      html += $(this).text();
-  });
-  $('textarea.latexentryfield').val(html);
-  // $('textarea.latexentryfield').val($(clone).html()
-  // // .replace(/\<(\/)*(p|div|br)\>/g, '<br/>')
-  // .replace(/\n\n\n+/g, '<br/>')
-  // .replace(/&gt;/g, ">")
-  // .replace(/&lt;/g, "<")
-  // .replace(/&amp;/g, "&")  
-  // .replace(/&nbsp;/g, ' ')
-  // .replace(/\n */g, " "));    
-  $('input[type="submit"]').show();
+    
+    var clone = document.getElementById('editor').cloneNode(true);
+    
+    
+    var oldElems = clone.getElementsByClassName("mq");
+    
+    for(var i = oldElems.length - 1; i >= 0; i--) {
+        var oldElem = oldElems.item(i);
+        var parentElem = oldElem.parentNode.parentNode;
+        var innerElem;
+        
+        var text;
+        console.log(oldElem);
+        if ($(oldElem).find('.latex').length) {
+            text = " \\(" + $(oldElem).find('.latex').text() + "\\) ";
+        } else {
+            text = " \\(" + $(oldElem).attr('data-latex') + "\\) ";
+        }
+        console.log(text);
+        // var textNode = document.createTextNode(text);
+        var textNode = $('<span class="latex">' + text + '</span>')[0];
+        parentElem.insertBefore(textNode, oldElem.parentNode);
+    }
+    var html = '';
+    $(clone).find('.mathbox').remove();
+    $(clone).children().each(function() {
+        if ($(this).is('br')) {
+            html += ' <br/> ';
+        } else {
+            html += $(this).text();
+        }
+    });
+    $('textarea.latexentryfield').val(html.replace(/^\s+/, '').replace(/\s\s+/, " "));
+    // $('textarea.latexentryfield').val($(clone).html()
+    // // .replace(/\<(\/)*(p|div|br)\>/g, '<br/>')
+    // .replace(/\n\n\n+/g, '<br/>')
+    // .replace(/&gt;/g, ">")
+    // .replace(/&lt;/g, "<")
+    // .replace(/&amp;/g, "&")  
+    // .replace(/&nbsp;/g, ' ')
+    // .replace(/\n */g, " "));    
+    $('input[type="submit"]').show();
 }
 
 function exitMathbox() {
@@ -400,7 +430,18 @@ $(function() {
             }    
         }
     });
-
+    
+    $('#editor').on('keypress',function(e) {
+        if(e.which == 13) {
+            event.preventDefault();
+            if ($('.text:focus').length) {
+                newline();
+            } else {
+                return 0;
+            }
+        }
+    });
+    
     $('#editor').click(function(event) {
         if (!$(event.target).hasClass('text') && !$(event.target).closest('.mq').length) {
             highLightText();
