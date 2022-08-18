@@ -85,7 +85,7 @@ function updateTable(db, table, data, headers, key, isPrimary) {
         sanitizedField = sanitize(field);
         sanitizedField = sanitizedField == '' ? 'BLANK' + j.toString() : sanitizedField;
         if (sanitizedHeaders.indexOf(sanitizedField) <= -1) {
-            console.log('ADDING HEADER ' + sanitizedField);            
+            console.log('ADDING HEADER ' + sanitizedField);
             headerNames.push(sanitizedField);
             sanitizedHeaders.push(sanitizedField);
             columnData[sanitizedField]['name'] = sanitizedField;
@@ -98,10 +98,10 @@ function updateTable(db, table, data, headers, key, isPrimary) {
     groupField = key;
 
     // updateFieldsMenu();
-    
+
     resetTable();
     updateRows(data, db, table, primaryDbKey);
-    
+
 }
 
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
@@ -225,7 +225,7 @@ function updateRows(data, db, table, secondaryDbKey) {
 
                 datum[primaryDbKey] = secondaryKeyValue;
                 table.push(datum);
-                
+
                 primaryDbKeyValues.push(secondaryKeyValue.toString());
             } else { // udpate existing database entry
                 for(let i = 0; i < table.length; i++) {
@@ -236,7 +236,7 @@ function updateRows(data, db, table, secondaryDbKey) {
                                 let value = rowObj[dbField];
                                 if (value != null && typeof value != typeof undefined) {
                                     table[i][dbField] = value;
-                                }                            
+                                }
                             }
                         });
                         break;
@@ -279,7 +279,7 @@ function recalculateColumns(db, table, columns) {
             // console.log(sfield);
             rowObj[sfield] = routineFunc(rowObj);
             var datum = rowObj;
-            
+
         });
     });
     queryHWSet(db, table, baseQuery, groupField);
@@ -514,29 +514,29 @@ function updateButtons(db, table) {
     });
 
 
-    $('.field_reference').html('');
-    sanitizedHeaders.forEach(function(field) {
-        $('.field_reference').append('<button class="field btn btn-outline-info btn-sm">' + field + '</button>');
-    });
-
-    $('.field_reference button.field').off();
-    $('.field_reference button.field').click(function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        // console.log(e);
-        insertAtCursor(document.getElementById('column_routine'), '+(@' + $(this).text() + ')');
-    });
-    $('#calculated_column').off();
-    $('#calculated_column').click(function() {
-        $('#column_bin').find('.column_name').val('COL' + sanitizedHeaders.length);
-    });
-
-    $('#query_submit').off();
-    $('#query_submit').on('click', function() {
-        baseQuery = $('#query').val();
-        queryHWSet(db, table, baseQuery, primaryKey);
-        $('.dropdown-toggle.query').dropdown('toggle');
-    })
+    // $('.field_reference').html('');
+    // sanitizedHeaders.forEach(function(field) {
+    //     $('.field_reference').append('<button class="field btn btn-outline-info btn-sm">' + field + '</button>');
+    // });
+	//
+    // $('.field_reference button.field').off();
+    // $('.field_reference button.field').click(function(e) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    //     // console.log(e);
+    //     insertAtCursor(document.getElementById('column_routine'), '+(@' + $(this).text() + ')');
+    // });
+    // $('#calculated_column').off();
+    // $('#calculated_column').click(function() {
+    //     $('#column_bin').find('.column_name').val('COL' + sanitizedHeaders.length);
+    // });
+	//
+    // $('#query_submit').off();
+    // $('#query_submit').on('click', function() {
+    //     baseQuery = $('#query').val();
+    //     queryHWSet(db, table, baseQuery, primaryKey);
+    //     $('.dropdown-toggle.query').dropdown('toggle');
+    // })
 
     $('#column_submit').off();
     $('#column_submit').on('click', function() {
@@ -552,31 +552,28 @@ function updateButtons(db, table) {
 
     });
 
-    $('.secondary-input').off();
-    $('#secondary-file-input').on('change', function(event) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var results = Papa.parse(e.target.result, {
-                header: true,
-                dynamicTyping: false,
-            });
-            console.log(results);
-            data = results.data;
-            if (data.length < 1) {
-                return;
-            }
-            // headers = results.meta['fields'];
-            headers = webworkFields;
-            console.log(headers);
-            // var contents = e.target.result;
-            updateTable(db, table, data, headers, primaryKey, false);
-            $('#second_key_li').show();
-            $('a.pastebin').addClass('disabled');
-            $('a.query').addClass('disabled');
-        }
-        reader.readAsText(event.target.files[0]);
-    });
-    
+    // $('.secondary-input').off();
+    // $('#secondary-file-input').on('change', function(event) {
+    //     var reader = new FileReader();
+    //     reader.onload = function(e) {
+    //         var results = Papa.parse(e.target.result, {
+    //             header: true,
+    //             dynamicTyping: false,
+    //         });
+    //         console.log(results);
+    //         data = results.data;
+    //         if (data.length < 1) {
+    //             return;
+    //         }
+    //         headers = webworkFields;
+	// 		updateTable(db, table, data, headers, primaryKey, false);
+    //         $('#second_key_li').show();
+    //         $('a.pastebin').addClass('disabled');
+    //         $('a.query').addClass('disabled');
+    //     }
+    //     reader.readAsText(event.target.files[0]);
+    // });
+
 
     $('#fields_submit').off();
     $('#fields_submit').on('click', function() {
@@ -731,11 +728,11 @@ function statistics(values, field) {
 //     $(a).attr('href', "#");
 //     $(a).html("<input class='field_checkbox' checked type='checkbox' field='count' id='count_checkbox'>&nbsp;<label class='form-check-label' for='count_checkbox'>Count</label>");
 //     $("#columns_menu").append(a);
-// 
+//
 //     sanitizedHeaders.map(function(field) {
 //         addFieldToMenu(field);
 //     });
-// 
+//
 // }
 
 function updateKeys() {
@@ -820,7 +817,7 @@ function updateKeys() {
 
 function loadPrimary(data, headers) {
     colWidths = {};
-    
+
     var field;
     var sanitizedField;
 
@@ -836,11 +833,11 @@ function loadPrimary(data, headers) {
         sanitizedHeaders.push(sanitizedField);
         headerTypes[sanitizedField] = 'STRING';
         columnData[sanitizedField] = {};
-        columnData[sanitizedField]['routine'] = '';        
+        columnData[sanitizedField]['routine'] = '';
     }
 
     updateKeys();
-    
+
     for (key in data[0]) {
         // $('#headers').append('<button type="button" class="btn btn-sm btn-outline-info">' + key + '</button>');
         $('select.re').append('<option value="^' + key + '$">' + key + '</option>');
@@ -904,7 +901,7 @@ function postInitialization(db, table) {
     $('a.pastebin').removeClass('disabled');
     $('a.query').removeClass('disabled');
 
-    $('#import').hide();    
+    $('#import').hide();
     $('#primary-file-input').closest('li').hide();
     $('#query').closest('li').show();
     $('#messages').html('<strong>Database Loaded.</strong>');
@@ -970,10 +967,11 @@ $(function () {
             let sheetName = workbook.SheetNames[0];
             var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
             console.log(XL_row_object);
-            var json_object = JSON.stringify(XL_row_object);
-            let headers = Object.keys(XL_row_object[0]);
-            console.log(headers);
-            loadPrimary(XL_row_object, headers);
+            // var json_object = JSON.stringify(XL_row_object);
+            // let headers = Object.keys(XL_row_object[0]);
+			let headers = webworkFields;
+            // console.log(json_object);
+			loadPrimary(XL_row_object, headers);
         };
 
         reader.onerror = function(ex) {

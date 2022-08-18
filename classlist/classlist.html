@@ -15,9 +15,8 @@
 <script src="table2csv.js" type='text/javascript'></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.6.2/papaparse.js" integrity="sha256-95XKAGWvB8KgVN45UZ487Ja0dpbuiYEPGH4wUhy4O+k=" crossorigin="anonymous"></script>
 
-<!-- <script src="js/lovefield.js"></script> -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/lovefield/2.1.12/lovefield.js" integrity="sha256-f1ZTSl24OYWE/QmqScoS1soGvrNhJDF4EtjxKIjOWNA=" crossorigin="anonymous"></script> -->
-
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.4/xlsx.full.min.js" integrity="sha256-w4FbLoep/QMisX0AubgVd6NdLz1IBt9b1DATsT+hP2c=" crossorigin="anonymous"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.mini.min.js" integrity="sha512-NDQhXrK2pOCL18FV5/Nc+ya9Vz+7o8dJV1IGRwuuYuRMFhAR0allmjWdZCSHFLDYgMvXKyN2jXlSy2JJEmq+ZA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="classlist.js" type='text/javascript'></script>
 
@@ -108,18 +107,19 @@ img.loading {
                         <input class="form-control-file form-control-sm dropdown-item" style="display:none" type="file" id="primary-file-input" accept=".csv, .txt, .lst"/>
                         <a class="pastebin dropdown-item" data-toggle="modal" data-target="#pastebin">Paste CSV</a>
                         <!-- <label id="import" for="importJSON" class="dropdown-item">Open JSON</label>
-                        <input class="form-control-file form-control-sm dropdown-item" type="file" style="display:none" id="importJSON" accept=".json"/>
-                        <label id="import" for="importXLSX" class="dropdown-item">Import XLSX</label>
-                        <input class="form-control-file form-control-sm dropdown-item" type="file" style="display:none" id="importXLSX" accept=".xlsx, .xls"/> -->
+						<input class="form-control-file form-control-sm dropdown-item" type="file" style="display:none" id="importJSON" accept=".json"/>
+					    -->
+						<label id="import" for="importXLSX" class="dropdown-item">Import XLSX</label>
+                        <input class="form-control-file form-control-sm dropdown-item" type="file" style="display:none" id="importXLSX" accept=".xlsx, .xls"/>
                     </div>
                 </li>
-                
+
                 <li class="nav-item">
                     <button type="button" id="reload_button" class="btn btn-primary" style="display:none;">Reload</button>
                 </li>
-                
+
             </ul>
-            <ul class="navbar-nav ml-auto">                
+            <ul class="navbar-nav ml-auto">
                 <li class="nav-item dropdown" id="export" style="display:none">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Export
@@ -254,7 +254,7 @@ img.loading {
                     <div class="form-group row">
                         <label for="fullNameRe" class="col-sm-2 col-form-label"><strong>Full Name</strong></label>
                         <div class="col-sm-7">
-                            <input class="form-control fullname" style="font-family:Courier" type="text" id="fullnameRe" name="fullnameRe" value="(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)"/>                            
+                            <input class="form-control fullname" style="font-family:Courier" type="text" id="fullnameRe" name="fullnameRe" value="(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)"/>
                         </div>
                         <div class="col-sm-3">
                             <select class="fullname re form-control"><option value="(^\s*(student)*\s*name)|(^\s*Formal Name\s*$)">Default</option><option value="^$">N/A</option></select>
